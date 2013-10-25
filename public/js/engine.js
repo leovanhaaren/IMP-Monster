@@ -4,7 +4,7 @@ $(document).ready(function() {
 
         // Engine settings
     var settings = {
-            debug:     true,
+            debug:     false,
             gridSize:  8,
             direction: false,
             directionStrength: 8,
@@ -28,7 +28,6 @@ $(document).ready(function() {
         webCamFlow   = new oflow.WebCamFlow(video, settings.gridSize),
 
         video = {
-            element: video.getContext('2d'),
             width:   video.videoWidth,
             height:  video.videoHeight
         },
@@ -78,7 +77,7 @@ $(document).ready(function() {
             var zone = direction.zones[i];
 
             // Continue next iteration when not in area of interest
-            if ( zone.x >= areaOfInterest.x && zone.x <= areaOfInterest.x + areaOfInterest.w &&   zone.y >= areaOfInterest.y && zone.y <= areaOfInterest.y + areaOfInterest.h )
+            if ( zone.x >= settings.areaOfInterest.x && zone.x <= settings.areaOfInterest.x + settings.areaOfInterest.w &&   zone.y >= settings.areaOfInterest.y && zone.y <= settings.areaOfInterest.y + settings.areaOfInterest.h )
                 continue;
 
             // Continue next iteration when movement not strong enough
@@ -91,8 +90,8 @@ $(document).ready(function() {
             tracker.zones++;
 
             // Draw debugging zones
-            if(debug)
-                drawDebugShape(scene, zone, "circle", "direction");
+            if(settings.debug)
+                drawDebugShape(scene, zone, "line", "direction");
         }
 
         // Get center of motion

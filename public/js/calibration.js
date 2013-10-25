@@ -2,7 +2,7 @@
  * Created by Leo on 24-10-13.
  */
 
-// Method to store a point we click/drag
+    // Method to store a point we click/drag
 function point(x, y) {
     return {
         x: x,
