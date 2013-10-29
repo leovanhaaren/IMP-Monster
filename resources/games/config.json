@@ -1,0 +1,29 @@
+{
+	"type": "Collection",
+	"properties": {
+		"player": {
+			"name": "player",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "player",
+			"order": 0
+		},
+		"score": {
+			"name": "score",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "score",
+			"order": 1
+		},
+		"playedTime": {
+			"name": "playedTime",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "playedTime",
+			"order": 2
+		}
+	}
+}

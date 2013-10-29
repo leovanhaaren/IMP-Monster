@@ -1,0 +1,25 @@
+/**
+ * Created by Leo on 10/23/13.
+ */
+
+body { background: black }
+
+video,
+canvas,
+#ui    { width: 640px; height: 480px; }
+
+video  { position: absolute; z-index: 1; /*background: lightseagreen;*/ }
+canvas { position: absolute; z-index: 2; /*background: rgba(255, 0, 0, 0.2)*/ }
+#ui    { position: absolute; z-index: 3; border: 3px rgba(255, 255, 255, 0.5) solid; }
+
+#gamestats {
+    position: absolute;
+    padding: 10px;
+    margin: 5px 0 0 645px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #555;
+    list-style: none;
+}
+
+#gamestats li { font: 11px Arial;  width: 400px; margin-bottom: 3px; }
+#gamestats h3 { margin: 0 0 10px; }
