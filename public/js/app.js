@@ -204,7 +204,7 @@
 			}
 			// calculate an average between the color values of the spot area
 			average = Math.round(average / (blendedData.data.length * 0.25));
-			if (average > 10) {
+			if (average > 25) {
 				// over a small limit, consider that a movement is detected
 				data = {confidence: average, spot: hotSpots[h]};
 				$(data.spot.el).trigger('motion', data);
