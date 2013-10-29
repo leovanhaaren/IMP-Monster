@@ -48,7 +48,15 @@ video { display: none; }
     position: absolute;
     bottom: 0;
     right: 0;
-    opacity: 0;
+    opacity: 0.5;
+}
+
+#score {
+    position: absolute;
+    right: 0;
+    padding: 25px;
+    color: white;
+    font: bold 50px Arial;
 }
 
 #hotSpots {
@@ -64,22 +72,26 @@ video { display: none; }
     transition: all 80ms linear;
 }
 
-/* Feel free to change this or turn it off altogether*/
-.active {
-    background: red;
-    -moz-transition: all 150ms linear;
-    -webkit-transition: all 150ms linear;
-    transition: all 150ms linear;
-}
-
 #ball {
     width: 10%;
-    height: 10%;
+    height: 13%;
     top: 50%;
-    left: 50%;
+    margin: -6.5% 0 0 -5%;
 
-    background: white;
-    -moz-border-radius: 100%;
-    -webkit-border-radius:  100%;
-    border-radius:  100%;
+    background: yellow;
+
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+
+    border: 50px solid yellow;
+
+    /*-webkit-animation: movingcircle 5s infinite;*/
+    -webkit-animation: movingcircle 5s infinite;
+}
+
+@-webkit-keyframes movingcircle {
+    0%      { left: 105%; }
+    50%     { left:  -15%; }
+    100%    { left: 105%; }
 }

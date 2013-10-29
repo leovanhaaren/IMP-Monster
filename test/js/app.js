@@ -13,7 +13,7 @@
 	var resize = function () {
 		var ratio = video.width / video.height;
 		var w = $(this).width();
-		var h = $(this).height() - 110;
+		var h = $(this).height();
 
 		if (content.width() > w) {
 			content.width(w);
@@ -25,7 +25,7 @@
 		canvases.width(content.width());
 		canvases.height(content.height());
 		content.css('left', (w - content.width()) / 2);
-		content.css('top', ((h - content.height()) / 2) + 55);
+		//content.css('top', (h - content.height() / 2));
 	}
 	$(window).resize(resize);
 	$(window).ready(function () {
@@ -192,6 +192,7 @@
 
 	function checkAreas() {
 		var data;
+        getCoords();
 		for (var h = 0; h < hotSpots.length; h++) {
 			var blendedData = contextBlended.getImageData(hotSpots[h].x, hotSpots[h].y, hotSpots[h].width, hotSpots[h].height);
 			var i = 0;
