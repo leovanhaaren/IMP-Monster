@@ -16,7 +16,7 @@ function dist(p1, p2) {
 }
 
 // Method used to get the area of interest handle(s)
-function getAreaHandle(mouse) {
+function getAreaHandle(mouse, settings) {
     if (dist(mouse, point(settings.areaOfInterest.x, settings.areaOfInterest.y)) <= settings.areaOfInterest.handlesSize) return 'topleft';
     if (dist(mouse, point(settings.areaOfInterest.x + settings.areaOfInterest.w, settings.areaOfInterest.y)) <= settings.areaOfInterest.handlesSize) return 'topright';
     if (dist(mouse, point(settings.areaOfInterest.x, settings.areaOfInterest.y + settings.areaOfInterest.h)) <= settings.areaOfInterest.handlesSize) return 'bottomleft';
@@ -28,15 +28,15 @@ function getAreaHandle(mouse) {
     return false;
 }
 
-function mouseDown(e) {
+function mouseDown() {
     if (settings.areaOfInterest.currentHandle) settings.areaOfInterest.drag = true;
-    drawAreaOfInterest();
+    //drawAreaOfInterest();
 }
 
 function mouseUp() {
     settings.areaOfInterest.drag          = false;
     settings.areaOfInterest.currentHandle = false;
-    drawAreaOfInterest();
+    //drawAreaOfInterest();
 }
 
 function mouseMove(e) {
@@ -85,13 +85,15 @@ function mouseMove(e) {
                 break;
         }
     }
-    if (settings.areaOfInterest.drag || settings.areaOfInterest.currentHandle != previousHandle) drawAreaOfInterest();
+    //if (settings.areaOfInterest.drag || settings.areaOfInterest.currentHandle != previousHandle) drawAreaOfInterest();
 }
 
-function drawAreaOfInterest() {
-    scene.canvas.clearRect(0, 0, scene.width, scene.height);
-    scene.canvas.fillStyle = settings.areaOfInterest.color;
-    scene.canvas.fillRect(settings.areaOfInterest.x, settings.areaOfInterest.y, settings.areaOfInterest.w, settings.areaOfInterest.h);
+function drawAreaOfInterest(scene, settings) {
+    //scene.canvas.clearRect(0, 0, scene.width, scene.height);
+    //scene.canvas.fillStyle = settings.areaOfInterest.color;
+    //scene.canvas.fillRect(settings.areaOfInterest.x, settings.areaOfInterest.y, settings.areaOfInterest.w, settings.areaOfInterest.h);
+    scene.canvas.strokeStyle = settings.areaOfInterest.color;
+    scene.canvas.strokeRect(settings.areaOfInterest.x, settings.areaOfInterest.y, settings.areaOfInterest.w, settings.areaOfInterest.h);
     if (settings.areaOfInterest.currentHandle) {
         var posHandle = point(0, 0);
         switch (settings.areaOfInterest.currentHandle) {
@@ -135,3 +137,11 @@ function drawAreaOfInterest() {
         scene.canvas.globalCompositeOperation = 'source-over';
     }
 }
+
+// Method to init the canvas mouse interaction
+function init() {
+    //canvas.addEventListener('mousedown', mouseDown(), false);
+    //canvas.addEventListener('mouseup', mouseUp(), false);
+    //canvas.addEventListener('mousemove', mouseMove(e), false);
+}
+init();
