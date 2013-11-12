@@ -6,6 +6,9 @@
 
 	window.hotSpots = [];
 
+    var selection  = null;
+    var mousedown  = false;
+
 	var content = $('#content');
 	var video = $('#webcam')[0];
 	var canvases = $('canvas');
@@ -30,35 +33,14 @@
 	$(window).resize(resize);
 	$(window).ready(function () {
 		resize();
-		$('#watchVideo').click(function () {
-			$(".browsers").fadeOut();
-			$(".browsersWithVideo").delay(300).fadeIn();
-			$("#video-demo").delay(300).fadeIn();
-			$("#video-demo")[0].play();
-			$('.backFromVideo').fadeIn();
-			event.stopPropagation();
-			return false;
-		});
-		$('.backFromVideo a').click(function () {
-			$(".browsersWithVideo").fadeOut();
-			$('.backFromVideo').fadeOut();
-			$(".browsers").fadeIn();
-			$("#video-demo")[0].pause();
-			$('#video-demo').fadeOut();
-			event.stopPropagation();
-			return false;
-		});
 	});
 
 	function hasGetUserMedia() {
-		// Note: Opera builds are unprefixed.
-		return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
-			navigator.mozGetUserMedia || navigator.msGetUserMedia);
+		return !!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 	}
 
 	if (hasGetUserMedia()) {
-		$('.introduction').fadeIn();
-		$('.allow').fadeIn();
+		$('#content').fadeIn();
 	} else {
 		$('.browsers').fadeIn();
 		return;
@@ -69,12 +51,12 @@
 	};
 
 	if (navigator.getUserMedia) {
-		navigator.getUserMedia({audio: true, video: true}, function (stream) {
+		navigator.getUserMedia({video: true}, function (stream) {
 			video.src = stream;
 			initialize();
 		}, webcamError);
 	} else if (navigator.webkitGetUserMedia) {
-		navigator.webkitGetUserMedia({audio: true, video: true}, function (stream) {
+		navigator.webkitGetUserMedia({video: true}, function (stream) {
 			video.src = window.webkitURL.createObjectURL(stream);
 			initialize();
 		}, webcamError);
@@ -90,8 +72,8 @@
 	var contextBlended = canvasBlended.getContext('2d');
 
 	// mirror video
-	contextSource.translate(canvasSource.width, 0);
-	contextSource.scale(-1, 1);
+	//contextSource.translate(canvasSource.width, 0);
+	//contextSource.scale(-1, 1);
 
 	var c = 5;
 
@@ -133,7 +115,21 @@
 	}
 
 	function drawVideo() {
-		contextSource.drawImage(video, 0, 0, video.width, video.height);
+
+        if (selection && selection.x && selection.y && selection.w && selection.h) {
+            contextSource.drawImage(video,selection.x,selection.y,selection.w,selection.h,
+                0,0,canvasSource.width, canvasSource.height);
+        } else {
+            contextSource.drawImage(video, 0, 0, video.width, video.height);
+        }
+
+        if (selection) {
+            if (contextSource.setLineDash) contextSource.setLineDash([3,3]);
+            contextSource.lineWidth = 2;
+            contextSource.strokeStyle = 'red'
+            contextSource.strokeRect(selection.x, selection.y, selection.w, selection.h);
+            if (contextSource.setLineDash) contextSource.setLineDash([1]);
+        }
 	}
 
 	function blend() {
@@ -238,4 +234,60 @@
 			ctx.strokeRect(o.x, o.y, o.width, o.height);
 		});
 	}
+
+
+
+
+
+
+
+
+
+    /**
+     * The mousedown event initiates the selection process
+     */
+    canvasSource.onmousedown = function (e)
+    {
+        var mouseXY = RGraph.getMouseXY(e);
+
+        selection = {x: mouseXY[0], y:mouseXY[1]};
+        mousedown = true;
+    }
+
+
+
+    /**
+     * The mouseup event finishes the selection for zoom
+     */
+    window.onmouseup =
+        canvasSource.onmouseup = function (e)
+        {
+            if (selection) {
+                var x = selection.x;
+                var y = selection.y;
+                var w = selection.w;
+                var h = selection.h;
+            }
+
+            mousedown = false;
+        }
+
+
+
+
+
+    /**
+     * The mousemove event updates the selection for zoom
+     */
+    canvasSource.onmousemove = function (e)
+    {
+        if (selection && mousedown) {
+
+            var mouseXY = RGraph.getMouseXY(e);
+
+            selection.w = mouseXY[0] - selection.x;
+            selection.h = mouseXY[1] - selection.y;
+        }
+    }
+
 })();

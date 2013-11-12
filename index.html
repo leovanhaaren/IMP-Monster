@@ -5,36 +5,19 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="styles/main.css"/>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script src="dpd.js"></script>
+    <script src='js/libs/dat.gui.min.js'></script>
 </head>
 <body>
     <div id="content">
-
         <video id="webcam" autoplay width="640" height="480"></video>
 
-        <canvas id="canvas-source" width="640" height="480"></canvas>
-        <canvas id="canvas-highlights" width="640" height="480"></canvas>
-        <canvas id="canvas-blended" width="640" height="480"></canvas>
-
-        <ul id="circles">
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-        </ul>
-        <div id="score"></div>
-        <div id="countdown">5</div>
+        <canvas id="detection" width="640" height="480"></canvas>
+        <canvas id="input" width="640" height="480"></canvas>
 
         <div id="hotSpots">
 
         </div>
     </div>
-    <script src="js/app.js"></script>
-    <script src="js/mini-game.js"></script>
+    <script src="js/Engine.js"></script>
 </body>
 </html>
