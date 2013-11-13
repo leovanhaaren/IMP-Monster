@@ -33,6 +33,13 @@
         }
     };
 
+    // FPS meter
+    var meter = new FPSMeter({
+        theme: 'transparent',
+        heat:  1,
+        graph:   1,
+        history: 25
+    });
 
     // ####################################################
     // ########           Game settings            ########
@@ -40,6 +47,12 @@
 
     game = {
         debug: true,
+        toggleFullscreen: function() {
+            if (screenfull.enabled) {
+                screenfull.toggle($('body')[0]);
+                console.log('[Window] Toggling fullscreen mode.');
+            }
+        },
         frameCount: 0
     };
 
@@ -89,6 +102,7 @@
 
     var f3 = gui.addFolder('Game');
     f3.add(game, 'debug');
+    f3.add(game, 'toggleFullscreen');
     f3.add(game, 'frameCount').listen();
     f3.open();
 
@@ -145,6 +159,7 @@
         game.frameCount++;
         draw();
         requestAnimFrame(update);
+        meter.tick();
     }
 
     function draw() {
@@ -198,32 +213,5 @@
     $(window).ready(function () {
         resize();
     });
-
-
-    // ####################################################
-    // ########          Fullscreen setup          ########
-    // ####################################################
-
-    toggleFullScreen = function(){
-        if (!document.webkitIsFullScreen) {
-            console.log('[Window] Switching to fullscreen mode.');
-            canvasDetection.webkitRequestFullScreen(canvasDetection.ALLOW_KEYBOARD_INPUT);
-        } else {
-            console.log('[Window] Switching back to normal mode.');
-            document.webkitCancelFullScreen();
-        }
-    }
-
-    // Go fullscreen on click
-    $("#detection").click(function(){
-        toggleFullScreen();
-    });
-
-    // Make enter key fullscreen toggle
-    /*document.addEventListener("keydown", function(e) {
-        if (e.keyCode == 13) {
-            toggleFullScreen();
-        }
-    }, false);*/
 
 })();
