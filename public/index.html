@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+<head>
+    <title>GameRamp || Mini-game platform for project ramped</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+    <div id="idle" ng-show="$state.includes('idle')">
+        <h1>{{message}}</h1>
+    </div>
+    <div id="content" ng-hide="$state.includes('idle')">
+        <video id="webcam" autoplay width="640" height="480"></video>
+
+        <canvas id="detection" width="640" height="480"></canvas>
+        <canvas id="input" width="640" height="480"></canvas>
+
+        <div id="hotSpots">
+            <div ui-view></div>
+        </div>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src='libs/angular.min.js'></script>
+    <script src='libs/angular-ui-router.min.js'></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='libs/dat.gui.min.js'></script>
+    <script src='libs/screenfull.min.js'></script>
+    <script src='libs/fpsmeter.min.js'></script>
+    <script src="js/engine.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/directives.js"></script>
+
+</body>
+</html>
