@@ -34,7 +34,7 @@
     };
 
     // FPS meter
-    var meter = new FPSMeter({
+    meter = new FPSMeter({
         theme: 'transparent',
         heat:  1,
         graph:   1,

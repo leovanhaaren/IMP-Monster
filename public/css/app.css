@@ -16,7 +16,7 @@ body {
 
 video { display: none; }
 
-#idle,
+#overlay,
 #content {
     position: absolute;
     left: 0;
@@ -27,13 +27,19 @@ video { display: none; }
     z-index: 0;
 }
 
-#idle > h1 {
+#overlay {
+    z-index: 1;
+}
+
+#overlay > h1 {
     position: absolute;
+    width: 800px;
     left: 50%;
     top: 50%;
-    margin: -35px 0 0 -300px;
+    margin: -35px 0 0 -400px;
     font: 75px Arial;
     color: #FFF;
+    text-align: center;
 }
 
 #input {
