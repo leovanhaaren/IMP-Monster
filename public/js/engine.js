@@ -160,7 +160,10 @@
 
     function update() {
         game.frameCount++;
+
         draw();
+        getHotspots();
+
         requestAnimFrame(update);
         meter.tick();
     }
@@ -189,6 +192,24 @@
         contextDetection.font = "16pt Arial";
         contextDetection.fillStyle = "white";
         contextDetection.fillText("Detection", 530, 30);
+    }
+
+
+    // ####################################################
+    // ########            Hotspot setup           ########
+    // ####################################################
+
+    function getHotspots() {
+        $('#hotSpots').children().each(function (i, el) {
+            var ratio = $("#detection").width() / $('video').width();
+            hotSpots[i] = {
+                x:      this.offsetLeft / ratio,
+                y:      this.offsetTop / ratio,
+                width:  this.scrollWidth / ratio,
+                height: this.scrollHeight / ratio,
+                el:     el
+            };
+        });
     }
 
 

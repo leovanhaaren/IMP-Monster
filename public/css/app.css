@@ -74,7 +74,8 @@ video { display: none; }
     position: absolute;
     width: 100px;
     height: 100px;
-    top: 50%;
+    left: 50%;
+    top: 80%;
     margin: -50px 0 0 -50px;
 
     background: white;
@@ -83,11 +84,11 @@ video { display: none; }
     -webkit-border-radius: 50%;
     border-radius: 50%;
 
-    -webkit-animation: movingcircle 5s infinite;
+    -webkit-animation: movingcircle 10s infinite;
 }
 
 @-webkit-keyframes movingcircle {
-    0%   { left: 104%;  }
+    0%   { left: 105%;  }
     50%  { left:  -4%; }
-    100% { left: 104%;  }
+    100% { left: 105%;  }
 }

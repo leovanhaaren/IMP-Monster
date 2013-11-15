@@ -88,6 +88,7 @@ config(function($stateProvider, $urlRouterProvider) {
 
         game = {
             debug: true,
+            threshold: 80,
             toggleFullscreen: function() {
                 if (screenfull.enabled) {
                     screenfull.toggle($('body')[0]);
@@ -100,14 +101,13 @@ config(function($stateProvider, $urlRouterProvider) {
         game.session = {
             game: "",
             player: "",
+            hotspots: [],
             score: 0
         };
 
         // ####################################################
         // ########            HTML settings           ########
         // ####################################################
-
-        var hotSpots = [];
 
         var content  = $('#content');
         var video    = $('#webcam')[0];
@@ -170,7 +170,8 @@ config(function($stateProvider, $urlRouterProvider) {
             f1.open();
 
             f2 = gui.addFolder('Game');
-            //f2.add(game, 'debug');
+            f2.add(game, 'debug');
+            f2.add(game, 'threshold');
             f2.add(game, 'toggleFullscreen');
             f2.add(game, 'frameCount').listen();
 
@@ -231,8 +232,19 @@ config(function($stateProvider, $urlRouterProvider) {
 
         function update() {
             game.frameCount++;
+
+            // Draw the detection canvas
             draw();
+
+            // Update hotspot in session data
+            getHotspots();
+
+            // Check session hotspots for collision with player
+            checkHotspots();
+
             requestAnimFrame(update);
+
+            // Check performance
             meter.tick();
         }
 
@@ -260,6 +272,55 @@ config(function($stateProvider, $urlRouterProvider) {
             contextDetection.font = "16pt Arial";
             contextDetection.fillStyle = "white";
             contextDetection.fillText("Detection", 530, 30);
+        }
+
+
+        // ####################################################
+        // ########            Hotspot setup           ########
+        // ####################################################
+
+        function getHotspots() {
+            $('#hotSpots').children().each(function (i, el) {
+                var ratio = $("#detection").width() / $('video').width();
+                game.session.hotspots[i] = {
+                    x:      this.offsetLeft   / ratio,
+                    y:      this.offsetTop    / ratio,
+                    width:  this.scrollWidth  / ratio,
+                    height: this.scrollHeight / ratio,
+                    el:     el
+                };
+
+                //var rect = el.getBoundingClientRect();
+                //if(game.debug) console.log('[hotspot] ' + rect.top, rect.right, rect.bottom, rect.left);
+            });
+        }
+
+        function checkHotspots() {
+            var data;
+            var hotspots = game.session.hotspots;
+
+            for (var h = 0; h < hotspots.length; h++) {
+                var canvasData = contextDetection.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
+                var i = 0;
+                var average = 0;
+
+                // make an average between the color channel
+                while (i < (canvasData.data.length * 0.25)) {
+                    average += (canvasData.data[i * 4] + canvasData.data[i * 4 + 1] + canvasData.data[i * 4 + 2]) / 3;
+                    ++i;
+                }
+                // calculate an average between the color values of the spot area
+                average = Math.round(average / (canvasData.data.length * 0.25));
+
+                if(game.debug) console.log(average);
+
+                // over a small limit, consider that a movement is detected
+                if (average > game.threshold) {
+                    data = {confidence: average, spot: hotspots[h]};
+                    //$(data.spot.el).trigger('motion', data);
+                    console.log('[Game] detected motion: ' + hotspots[h].el.id + ' - ' + average);
+                }
+            }
         }
 
     }]);
