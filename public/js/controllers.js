@@ -54,12 +54,30 @@ angular.module('controllers', []).
         var timer = $timeout($rootScope.onTimeout,1000);
     }]).
 
-    controller('playCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+    controller('playCtrl', ['$scope', '$rootScope', '$state', '$compile', function($scope, $rootScope, $state, $compile) {
         console.log('[Game] Playing.');
 
         game.frameCount = 0;
 
+        //$('#hotspots').append($compile('<div id="ball"></div>')($scope));
+        $('#hotspots').append('<div id="ball"></div>');
+
         f3.open();
+
+        $('div#ball').on('hit', function(ev, data){
+            console.log('[Game] Player scored.');
+
+            // Remove the circle from screen
+            var spot = $(data.spot.el);
+            spot.remove();
+
+            // Update score
+            game.session.score++;
+
+            setTimeout(function () {
+                $('#hotspots').append('<div id="ball"></div>');
+            }, 10000);
+        });
 
         $rootScope.socket.on('game:update', function (session) {
             if(session.active) return;

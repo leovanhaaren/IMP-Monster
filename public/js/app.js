@@ -30,7 +30,7 @@ config(function($stateProvider, $urlRouterProvider) {
             })
             .state('play', {
                 url: "/play",
-                templateUrl: "partials/testgame.html",
+                //templateUrl: "partials/testgame.html",
                 controller: "playCtrl"
             })
     }).
@@ -42,7 +42,8 @@ config(function($stateProvider, $urlRouterProvider) {
         console.log('[Engine] Initializing.');
 
         // Socket io
-        $rootScope.socket = io.connect('http://145.89.128.95:2403');
+        $rootScope.socket = io.connect('http://145.89.128.106:2403');
+        console.log('[Socket.io] Connected to: http://145.89.128.106:2403');
 
         // ####################################################
         // ########          Engine settings           ########
@@ -63,13 +64,19 @@ config(function($stateProvider, $urlRouterProvider) {
                 }
             },
             areaOfInterest: {
-                x: 0,
-                y: 0,
-                width: 640,
-                height: 480,
+                x: 85,
+                y: 35,
+                width: 485,
+                height: 420,
                 thickness: 2,
                 color: '#16CFDC',
                 toggle: function() { $("#input").toggle(); }
+            },
+            toggleFullscreen: function() {
+                if (screenfull.enabled) {
+                    screenfull.toggle($('body')[0]);
+                    console.log('[Window] Toggling fullscreen mode.');
+                }
             }
         };
 
@@ -87,14 +94,8 @@ config(function($stateProvider, $urlRouterProvider) {
         // ####################################################
 
         game = {
-            debug: true,
-            threshold: 80,
-            toggleFullscreen: function() {
-                if (screenfull.enabled) {
-                    screenfull.toggle($('body')[0]);
-                    console.log('[Window] Toggling fullscreen mode.');
-                }
-            },
+            debug: false,
+            threshold: 50,
             frameCount: 0
         };
 
@@ -121,6 +122,49 @@ config(function($stateProvider, $urlRouterProvider) {
 
 
         // ####################################################
+        // ########            GUI settings            ########
+        // ####################################################
+
+
+        function setupGUI() {
+            console.log('[Engine] Initialized GUI.');
+
+            // Define DAT.GUI
+            gui = new dat.GUI();
+            //var gui = new dat.GUI({ autoPlace: false });
+            //$('#content').append(gui.domElement);
+
+            f1 = gui.addFolder('Input');
+            // Area settings
+            f1.add(settings, 'debug').onFinishChange(function(){
+                // Clear canvas
+                contextInput.clearRect(0, 0, canvasInput.width, canvasInput.height);
+                contextDetection.clearRect(0, 0, canvasDetection.width, canvasDetection.height);
+            });
+            f1.add(settings.areaOfInterest, 'x', 0, 640).step(5);
+            f1.add(settings.areaOfInterest, 'y', 0, 480).step(5);
+            f1.add(settings.areaOfInterest, 'width', 0, 640).step(5);
+            f1.add(settings.areaOfInterest, 'height', 0, 480).step(5);
+
+            // Line settings
+            f1.add(settings.areaOfInterest, 'toggle');
+            f1.add(settings.detection, 'mirrorHorizontal');
+            f1.add(settings.detection, 'mirrorVertical');
+            f1.add(settings, 'toggleFullscreen');
+            f1.open();
+
+            f2 = gui.addFolder('Game');
+            f2.add(game, 'debug');
+            f2.add(game, 'threshold', 0, 255);
+            f2.add(game, 'frameCount').listen();
+
+            f3 = gui.addFolder('Game session');
+            f3.add(game.session, 'game').listen();
+            f3.add(game.session, 'player').listen();
+            f3.add(game.session, 'score').listen();
+        }
+
+        // ####################################################
         // ########            Webcam setup            ########
         // ####################################################
 
@@ -140,45 +184,6 @@ config(function($stateProvider, $urlRouterProvider) {
 
                 $state.go('idle');
             }, webcamError);
-        }
-
-
-        // ####################################################
-        // ########            GUI settings            ########
-        // ####################################################
-
-
-        function setupGUI() {
-            console.log('[Engine] Initialized GUI.');
-
-            // Define DAT.GUI
-            gui = new dat.GUI();
-            //var gui = new dat.GUI({ autoPlace: false });
-            //$('#content').append(gui.domElement);
-
-            f1 = gui.addFolder('Input');
-            // Area settings
-            f1.add(settings.areaOfInterest, 'x', 0, 640).step(5);
-            f1.add(settings.areaOfInterest, 'y', 0, 480).step(5);
-            f1.add(settings.areaOfInterest, 'width', 0, 640).step(5);
-            f1.add(settings.areaOfInterest, 'height', 0, 480).step(5);
-
-            // Line settings
-            f1.add(settings.areaOfInterest, 'toggle');
-            f1.add(settings.detection, 'mirrorHorizontal');
-            f1.add(settings.detection, 'mirrorVertical');
-            f1.open();
-
-            f2 = gui.addFolder('Game');
-            f2.add(game, 'debug');
-            f2.add(game, 'threshold');
-            f2.add(game, 'toggleFullscreen');
-            f2.add(game, 'frameCount').listen();
-
-            f3 = gui.addFolder('Game session');
-            f3.add(game.session, 'game').listen();
-            f3.add(game.session, 'player').listen();
-            f3.add(game.session, 'score').listen();
         }
 
 
@@ -280,9 +285,11 @@ config(function($stateProvider, $urlRouterProvider) {
         // ####################################################
 
         function getHotspots() {
-            $('#hotSpots').children().each(function (i, el) {
+            hotspots = [];
+
+            $('#hotspots').children().each(function (i, el) {
                 var ratio = $("#detection").width() / $('video').width();
-                game.session.hotspots[i] = {
+                hotspots[i] = {
                     x:      this.offsetLeft   / ratio,
                     y:      this.offsetTop    / ratio,
                     width:  this.scrollWidth  / ratio,
@@ -297,8 +304,8 @@ config(function($stateProvider, $urlRouterProvider) {
 
         function checkHotspots() {
             var data;
-            var hotspots = game.session.hotspots;
 
+            if(hotspots.length < 1) return;
             for (var h = 0; h < hotspots.length; h++) {
                 var canvasData = contextDetection.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
                 var i = 0;
@@ -317,8 +324,8 @@ config(function($stateProvider, $urlRouterProvider) {
                 // over a small limit, consider that a movement is detected
                 if (average > game.threshold) {
                     data = {confidence: average, spot: hotspots[h]};
-                    //$(data.spot.el).trigger('motion', data);
-                    console.log('[Game] detected motion: ' + hotspots[h].el.id + ' - ' + average);
+
+                    $(data.spot.el).trigger('hit', data);
                 }
             }
         }
