@@ -70,7 +70,9 @@ video { display: none; }
     background: black;
 }
 
-#ball {
+#ball,
+#ball2,
+#ball3 {
     position: absolute;
     width: 100px;
     height: 100px;
@@ -78,17 +80,42 @@ video { display: none; }
     top: 80%;
     margin: -50px 0 0 -50px;
 
-    background: white;
+    background: blue;
 
     -moz-border-radius: 50%;
     -webkit-border-radius: 50%;
     border-radius: 50%;
 
+    -webkit-animation: movingcircle 15s infinite;
+
+    color: #FFF;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 50px;
+    font-weight: bold;
+
+    text-align: center;
+    vertical-align: middle;
+    line-height: 100px;
+}
+
+#ball2 {
+    top: 50%;
+
+    background: green;
+
     -webkit-animation: movingcircle 10s infinite;
+}
+
+#ball3 {
+    top: 20%;
+
+    background: red;
+
+    -webkit-animation: movingcircle 5s infinite;
 }
 
 @-webkit-keyframes movingcircle {
     0%   { left: 105%;  }
-    50%  { left:  -4%; }
+    50%  { left:  -5%; }
     100% { left: 105%;  }
 }

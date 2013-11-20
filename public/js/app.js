@@ -30,8 +30,12 @@ config(function($stateProvider, $urlRouterProvider) {
             })
             .state('play', {
                 url: "/play",
-                //templateUrl: "partials/testgame.html",
-                controller: "playCtrl"
+                templateUrl: "partials/testgame.html",
+                controller: "gameCtrl"
+            })
+            .state('finished', {
+                url: "/finished",
+                controller: "finishedCtrl"
             })
     }).
     run(['$rootScope', '$state', '$stateParams', function ($rootScope, $state, $stateParams) {
@@ -71,12 +75,6 @@ config(function($stateProvider, $urlRouterProvider) {
                 thickness: 2,
                 color: '#16CFDC',
                 toggle: function() { $("#input").toggle(); }
-            },
-            toggleFullscreen: function() {
-                if (screenfull.enabled) {
-                    screenfull.toggle($('body')[0]);
-                    console.log('[Window] Toggling fullscreen mode.');
-                }
             }
         };
 
@@ -96,7 +94,8 @@ config(function($stateProvider, $urlRouterProvider) {
         game = {
             debug: false,
             threshold: 50,
-            frameCount: 0
+            frameCount: 0,
+            idle: 0
         };
 
         game.session = {
@@ -157,6 +156,7 @@ config(function($stateProvider, $urlRouterProvider) {
             f2.add(game, 'debug');
             f2.add(game, 'threshold', 0, 255);
             f2.add(game, 'frameCount').listen();
+            f3.add(game, 'idle').listen();
 
             f3 = gui.addFolder('Game session');
             f3.add(game.session, 'game').listen();
@@ -241,9 +241,6 @@ config(function($stateProvider, $urlRouterProvider) {
             // Draw the detection canvas
             draw();
 
-            // Update hotspot in session data
-            getHotspots();
-
             // Check session hotspots for collision with player
             checkHotspots();
 
@@ -304,6 +301,9 @@ config(function($stateProvider, $urlRouterProvider) {
 
         function checkHotspots() {
             var data;
+
+            // Update hotspot in session data
+            getHotspots();
 
             if(hotspots.length < 1) return;
             for (var h = 0; h < hotspots.length; h++) {
