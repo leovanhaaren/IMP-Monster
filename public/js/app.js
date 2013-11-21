@@ -93,16 +93,21 @@ config(function($stateProvider, $urlRouterProvider) {
 
         game = {
             debug: false,
-            threshold: 50,
+            canvasToggle: function() { $("#detection").toggle(); },
+            //appEnabled: false,
+            whiteThreshold: 200,
+            confidence: 10,
+            reset: 30,
             frameCount: 0,
-            idle: 0
+            idleCount: 0
         };
 
         game.session = {
             game: "",
             player: "",
             hotspots: [],
-            score: 0
+            score: 0,
+            limit: 25
         };
 
         // ####################################################
@@ -149,19 +154,23 @@ config(function($stateProvider, $urlRouterProvider) {
             f1.add(settings.areaOfInterest, 'toggle');
             f1.add(settings.detection, 'mirrorHorizontal');
             f1.add(settings.detection, 'mirrorVertical');
-            f1.add(settings, 'toggleFullscreen');
             f1.open();
 
             f2 = gui.addFolder('Game');
             f2.add(game, 'debug');
-            f2.add(game, 'threshold', 0, 255);
+            f2.add(game, 'canvasToggle');
+            //f2.add(game, 'appEnabled');
+            f2.add(game, 'whiteThreshold', 0, 255);
+            f2.add(game, 'confidence');
+            f2.add(game, 'reset', 0, 120);
             f2.add(game, 'frameCount').listen();
-            f3.add(game, 'idle').listen();
+            f2.add(game, 'idleCount').listen();
 
             f3 = gui.addFolder('Game session');
             f3.add(game.session, 'game').listen();
             f3.add(game.session, 'player').listen();
             f3.add(game.session, 'score').listen();
+            f3.add(game.session, 'limit').listen();
         }
 
         // ####################################################
@@ -241,6 +250,9 @@ config(function($stateProvider, $urlRouterProvider) {
             // Draw the detection canvas
             draw();
 
+            // Update hotspot in session data
+            getHotspots();
+
             // Check session hotspots for collision with player
             checkHotspots();
 
@@ -302,28 +314,26 @@ config(function($stateProvider, $urlRouterProvider) {
         function checkHotspots() {
             var data;
 
-            // Update hotspot in session data
-            getHotspots();
-
             if(hotspots.length < 1) return;
             for (var h = 0; h < hotspots.length; h++) {
                 var canvasData = contextDetection.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
                 var i = 0;
-                var average = 0;
+                var white = 0;
+                var confidence = 0;
 
                 // make an average between the color channel
                 while (i < (canvasData.data.length * 0.25)) {
-                    average += (canvasData.data[i * 4] + canvasData.data[i * 4 + 1] + canvasData.data[i * 4 + 2]) / 3;
+                    white = (canvasData.data[i * 4] + canvasData.data[i * 4 + 1] + canvasData.data[i * 4 + 2]) / 3;
+
+                    if(white >= game.whiteThreshold) confidence++;
+
                     ++i;
                 }
-                // calculate an average between the color values of the spot area
-                average = Math.round(average / (canvasData.data.length * 0.25));
-
-                if(game.debug) console.log(average);
+                if(game.debug) console.log(confidence);
 
                 // over a small limit, consider that a movement is detected
-                if (average > game.threshold) {
-                    data = {confidence: average, spot: hotspots[h]};
+                if (confidence > game.confidence) {
+                    data = {confidence: confidence, spot: hotspots[h]};
 
                     $(data.spot.el).trigger('hit', data);
                 }
