@@ -1,14 +1,12 @@
-#ball,
-#ball2,
-#ball3 {
+#ball {
     position: absolute;
     width: 100px;
     height: 100px;
     left: 50%;
-    top: 80%;
+    top: 50%;
     margin: -50px 0 0 -50px;
 
-    background: blue;
+    background: white;
 
     -moz-border-radius: 50%;
     -webkit-border-radius: 50%;
@@ -16,7 +14,7 @@
 
     -webkit-animation: movingcircle 15s infinite;
 
-    color: #FFF;
+    color: #000;
     font-family: 'Open Sans', sans-serif;
     font-size: 50px;
     font-weight: bold;
@@ -24,22 +22,6 @@
     text-align: center;
     vertical-align: middle;
     line-height: 100px;
-}
-
-#ball2 {
-    top: 50%;
-
-    background: green;
-
-    -webkit-animation: movingcircle 10s infinite;
-}
-
-#ball3 {
-    top: 20%;
-
-    background: red;
-
-    -webkit-animation: movingcircle 5s infinite;
 }
 
 @-webkit-keyframes movingcircle {

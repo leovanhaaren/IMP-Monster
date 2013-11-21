@@ -6,7 +6,7 @@
 }
 
 body {
-    background: black;
+    background: #eee;
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;
     padding: 0;
@@ -58,9 +58,13 @@ video { display: none; }
     opacity: 1;
 }
 
-#hotSpots {
-    position: relative;
+#scene {
     display: block;
+    height: 100%;
+}
+
+#hotspots {
+    width: 100%;
     height: 100%;
 }
 

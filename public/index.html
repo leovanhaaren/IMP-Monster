@@ -4,19 +4,19 @@
     <title>GameRamp || Mini-game platform for project ramped</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/app.css"/>
-    <link rel="stylesheet" href="css/testgame.css"/>
+    <link rel="stylesheet" href="css/games/prototype01.css"/>
+    <link rel="stylesheet" href="css/games/prototype02.css"/>
 </head>
 <body>
-    <div id="overlay" ng-hide="$state.includes('play')">
+    <div id="overlay" ng-hide="$state.includes('prototype01') || $state.includes('prototype02')">
         <h1>{{message}}</h1>
     </div>
-    <div id="content" ng-show="$state.includes('play') || $state.includes('idle')">
+    <div id="content">
         <video id="webcam" autoplay width="640" height="480"></video>
 
-        <canvas id="detection" width="640" height="480"></canvas>
-        <canvas id="input" width="640" height="480"></canvas>
+        <canvas id="canvas" width="640" height="480"></canvas>
 
-        <div id="hotspots" ng-show="$state.includes('play')" ui-view>
+        <div id="scene" ui-view></div>
         </div>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
