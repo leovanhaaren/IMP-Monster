@@ -2,11 +2,14 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('app', [
-  'ui.router',
-  'controllers'
-]).
-config(function($stateProvider, $urlRouterProvider) {
+var monsterApp = angular.module('app', ['ui.router','controllers']);
+
+
+// ####################################################
+// ########           Engine config            ########
+// ####################################################
+
+    monsterApp.config(function($stateProvider, $urlRouterProvider) {
         //
         // For any unmatched url, redirect to /state1
         $urlRouterProvider.otherwise("/init");
@@ -25,6 +28,10 @@ config(function($stateProvider, $urlRouterProvider) {
                 url: "/countdown",
                 controller: "countdownCtrl"
             })
+            .state('start', {
+                url: "/start",
+                controller: "startCtrl"
+            })
             .state('prototype01', {
                 url: "/prototype01",
                 templateUrl: "games/prototype01.html",
@@ -33,21 +40,28 @@ config(function($stateProvider, $urlRouterProvider) {
             .state('prototype02', {
                 url: "/prototype02",
                 templateUrl: "games/prototype02.html",
-                controller: "prototype02Ctrl"
+                controller: "prototype01Ctrl"
             })
             .state('finished', {
                 url: "/finished",
                 controller: "finishedCtrl"
             })
-    }).
-    run(['$rootScope', '$state', '$stateParams', function ($rootScope, $state, $stateParams) {
-        // state hack
+    });
+
+
+// ####################################################
+// ########          Engine bootstrap          ########
+// ####################################################
+
+    monsterApp.run(['$rootScope', '$state', '$stateParams', function ($rootScope, $state, $stateParams) {
+        // State hack
+        // So we know what our engine is currently doing
         $rootScope.$state       = $state;
         $rootScope.$stateParams = $stateParams;
 
         console.log('[Engine] Initializing');
 
-        // Socket io
+        // Connect with the Socket.io server
         $rootScope.socket = io.connect('http://145.89.128.106:2403');
         console.log('[Socket.io] Connected to: http://145.89.128.106:2403');
 
@@ -55,6 +69,7 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########          Engine settings           ########
         // ####################################################
 
+        // Video input settings
         settings = {
             debug: true,
             detection: {
@@ -80,7 +95,7 @@ config(function($stateProvider, $urlRouterProvider) {
             }
         };
 
-        // FPS meter
+        // FPS meter settings
         meter = new FPSMeter({
             theme:   'transparent',
             heat:    1,
@@ -93,26 +108,28 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########           Game settings            ########
         // ####################################################
 
+        // General game settings
         game = {
             debug:          false,
             canvasToggle:   function() { $("#canvas").toggle(); },
             appEnabled:     false,
             whiteThreshold: 225,
             confidence:     5,
-            reset:          60,
-            frameCount:     0,
-            idleCount:      0
+            reset:          60
         };
 
+        // Game session settings
         game.session = {
             game:   "",
             player: "",
             score:  0,
-            limit:  25
+            limit:  25,
+            frameCount:     0,
+            idleCount:      0
         };
 
         // ####################################################
-        // ########            HTML settings           ########
+        // ########            DOM settings            ########
         // ####################################################
 
         var content  = $('#content');
@@ -128,15 +145,16 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########            GUI settings            ########
         // ####################################################
 
-
+        // DAT.gui setup, for real-time engine parameters
         function setupGUI() {
             console.log('[Engine] Initialized GUI');
 
             // Define DAT.GUI
             gui = new dat.GUI();
 
+            // Video input settings
             f1 = gui.addFolder('Input');
-            // Area settings
+
             f1.add(settings, 'debug').onFinishChange(function(){
                 // Clear canvas
                 context.clearRect(0, 0, canvas.width, canvas.height);
@@ -145,13 +163,12 @@ config(function($stateProvider, $urlRouterProvider) {
             f1.add(settings.areaOfInterest, 'y',      0, 480).step(5);
             f1.add(settings.areaOfInterest, 'width',  0, 640).step(5);
             f1.add(settings.areaOfInterest, 'height', 0, 480).step(5);
-
-            // Line settings
             f1.add(settings.areaOfInterest, 'show');
             f1.add(settings.detection,      'mirrorHorizontal');
             f1.add(settings.detection,      'mirrorVertical');
             f1.open();
 
+            // General game settings
             f2 = gui.addFolder('Game');
             f2.add(game, 'debug');
             f2.add(game, 'canvasToggle');
@@ -159,14 +176,16 @@ config(function($stateProvider, $urlRouterProvider) {
             f2.add(game, 'whiteThreshold', 0, 255);
             f2.add(game, 'confidence');
             f2.add(game, 'reset', 0, 120);
-            f2.add(game, 'frameCount').listen();
-            f2.add(game, 'idleCount').listen();
 
+            // Specific game session data
+            // Updates based on incoming and/or modified data
             f3 = gui.addFolder('Game session');
             f3.add(game.session, 'game').listen();
             f3.add(game.session, 'player').listen();
             f3.add(game.session, 'score').listen();
             f3.add(game.session, 'limit').listen();
+            f3.add(game.session, 'frameCount').listen();
+            f3.add(game.session, 'idleCount').listen();
         }
 
         // ####################################################
@@ -196,6 +215,7 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########            Resize setup            ########
         // ####################################################
 
+        // Resizes the game and video input so they are lined up
         var resize = function () {
             var ratio = video.width / video.height;
             var w     = $(this).width();
@@ -222,11 +242,13 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########              Game loop             ########
         // ####################################################
 
+        // Entry point for the loop
         function startLoop() {
             console.log('[Engine] Starting game loop');
             update();
         }
 
+        // The loop itself
         window.requestAnimFrame = (function () {
             return window.requestAnimationFrame       ||
                    window.webkitRequestAnimationFrame ||
@@ -238,8 +260,10 @@ config(function($stateProvider, $urlRouterProvider) {
                    };
         })();
 
+        // Update function which gets called each iteration
         function update() {
-            game.frameCount++;
+            // Raise framecount
+            game.session.frameCount++;
 
             // Draw the detection canvas
             draw();
@@ -252,10 +276,13 @@ config(function($stateProvider, $urlRouterProvider) {
 
             requestAnimFrame(update);
 
-            // Check performance
+            // FPSmeter
+            // Give it a tick to update fps
             meter.tick();
         }
 
+        // Draw function which gets called each iteration
+        // Only draws the video input on the canvas
         function draw() {
             // Show AOI only if enabled
             if(settings.areaOfInterest.show) {
@@ -281,6 +308,7 @@ config(function($stateProvider, $urlRouterProvider) {
         // ########            Hotspot setup           ########
         // ####################################################
 
+        // Gets all hotspots from the scene, so we can later check if players hits one of these
         function getHotspots() {
             hotspots = [];
 
@@ -296,6 +324,13 @@ config(function($stateProvider, $urlRouterProvider) {
             });
         }
 
+
+        // ####################################################
+        // ########        Hotspot hit detection       ########
+        // ####################################################
+
+        // Checks a portion of the canvas, based on the objects dimensions
+        // Will trigger a hit event when player hits a object based on threshold
         function checkHotspots() {
             var data;
 
