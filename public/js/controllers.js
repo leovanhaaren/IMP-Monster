@@ -4,7 +4,7 @@
 // ########          Init controller           ########
 // ####################################################
 
-    monsterApp.controller('initCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+    monsterApp.controller('initCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
         console.log('[Game] Init');
 
         $rootScope.message = "Zet webcam aan";
@@ -41,7 +41,7 @@
 // ########          Idle controller           ########
 // ####################################################
 
-    monsterApp.controller('idleCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+    monsterApp.controller('idleCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
         console.log('[Game] Idle');
 
         $rootScope.message = "Selecteer een spel";
@@ -96,16 +96,16 @@
         console.log('[Game] Init game');
 
         // Init idle timer
-        var timer
         $scope.timer = function() {
-            timer = $timeout(function() {
+            game.session.idleTimer = $timeout(function() {
+                game.session.timer++;
                 game.idleCount++;
 
                 if(game.idleCount >= game.reset) {
                     console.log('[Game] Player idle for too long, resetting game');
                     game.idleCount = 0;
 
-                    $timeout.cancel(timer);
+                    $timeout.cancel(game.session.idleTimer);
 
                     hotspots = [];
                     $state.go('idle');
@@ -131,7 +131,10 @@
 
         $scope.showScore = function() {
             $timeout(function() {
-                $rootScope.message = "Je score is " + game.session.score;
+                if(game.session.winner.length === "")
+                    $rootScope.message = "Je score is " + game.session.score;
+                else
+                    $rootScope.message = game.session.winner + " heeft gewonnen";
 
                 $scope.goIdle();
             }, 5000);

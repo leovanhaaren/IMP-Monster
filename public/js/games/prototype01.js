@@ -1,7 +1,7 @@
 'use strict';
 
 // ####################################################
-// ########      Prototype 01 controller       ########
+// ########     Prototype 01/02 controller     ########
 // ####################################################
 
     monsterApp.controller('prototype01Ctrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
@@ -13,7 +13,7 @@
             game.idleCount = 0;
 
             // Get data from object and remove it from scene
-            var id    = $(data.spot.el).attr('id');
+            var id    = $(data.spot.el).attr('class');
             var score = $(data.spot.el).html();
             $(data.spot.el).remove();
 
@@ -23,13 +23,13 @@
             game.session.score += parseInt(score);
 
             if(game.session.score >= game.session.limit){
-                $timeout.cancel(timer);
+                $timeout.cancel(game.session.idleTimer);
 
                 hotspots = [];
                 $state.go('finished');
             } else
                 setTimeout(function () {
-                    $('#hotspots').append('<div id="' + id + '">' + score + '</div>');
+                    $('#hotspots').append('<div class="' + id + '">' + score + '</div>');
                 }, 5000);
         });
     }]);

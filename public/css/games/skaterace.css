@@ -1,0 +1,68 @@
+/* ####################################################
+// ########          Prototype 2 game          ########
+// ####################################################
+// ########            Game objects            ########
+// ##################################################*/
+
+#hotspots > .player1,
+#hotspots > .player2 {
+    width: 50%;
+    height: 80px;
+    position: absolute;
+
+    text-align: center;
+    vertical-align: middle;
+    line-height: 80px;
+
+    color: #FFF;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+#hotspots > .player1 { background: #a135ff; }
+#hotspots > .player2 { background: #4bb4ff; }
+
+#hotspots > .top     { top: 0;    }
+#hotspots > .bottom  { bottom: 0; }
+#hotspots > .player1 { left: 0;   }
+#hotspots > .player2 { right: 0;  }
+
+
+/* ####################################################
+// ########             Game scene             ########
+// ##################################################*/
+
+#scene > #bg > .line {
+    width: 2%;
+    height: 100%;
+    position: absolute;
+    left: 49%;
+    display: block;
+
+    background: #ffffff;
+}
+
+#scene > #bg > .border1 {
+    width: 1%;
+    height: 100%;
+    position: absolute;
+    left: 0%;
+    display: block;
+
+    background: #ff0000;
+}
+
+#scene > #bg > .border2 {
+    width: 1%;
+    height: 100%;
+    position: absolute;
+    left: 99%;
+    display: block;
+
+    background: #ff0000;
+}
+
+/* ####################################################
+// ########          Game animations           ########
+// ##################################################*/

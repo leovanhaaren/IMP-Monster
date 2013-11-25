@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var monsterApp = angular.module('app', ['ui.router','controllers']);
+var monsterApp = angular.module('app', ['ui.router']);
 
 
 // ####################################################
@@ -42,6 +42,11 @@ var monsterApp = angular.module('app', ['ui.router','controllers']);
                 templateUrl: "games/prototype02.html",
                 controller: "prototype01Ctrl"
             })
+            .state('skaterace', {
+                url: "/skaterace",
+                templateUrl: "games/skaterace.html",
+                controller: "skateraceCtrl"
+            })
             .state('finished', {
                 url: "/finished",
                 controller: "finishedCtrl"
@@ -62,8 +67,8 @@ var monsterApp = angular.module('app', ['ui.router','controllers']);
         console.log('[Engine] Initializing');
 
         // Connect with the Socket.io server
-        $rootScope.socket = io.connect('http://145.89.128.106:2403');
-        console.log('[Socket.io] Connected to: http://145.89.128.106:2403');
+        $rootScope.socket = io.connect('http://145.89.128.162:2403');
+        console.log('[Socket.io] Connected to: http://145.89.128.162:2403');
 
         // ####################################################
         // ########          Engine settings           ########
@@ -113,19 +118,22 @@ var monsterApp = angular.module('app', ['ui.router','controllers']);
             debug:          false,
             canvasToggle:   function() { $("#canvas").toggle(); },
             appEnabled:     false,
-            whiteThreshold: 225,
-            confidence:     5,
-            reset:          60
+            whiteThreshold: 250,
+            confidence:     15,
+            reset:          300
         };
 
         // Game session settings
         game.session = {
+            timer:  0,
             game:   "",
             player: "",
+            winner: "",
             score:  0,
             limit:  25,
-            frameCount:     0,
-            idleCount:      0
+            frameCount: 0,
+            idleCount:  0,
+            idleTimer: null
         };
 
         // ####################################################
@@ -175,15 +183,23 @@ var monsterApp = angular.module('app', ['ui.router','controllers']);
             f2.add(game, 'appEnabled');
             f2.add(game, 'whiteThreshold', 0, 255);
             f2.add(game, 'confidence');
-            f2.add(game, 'reset', 0, 120);
+            f2.add(game, 'reset', 0, 300);
 
             // Specific game session data
             // Updates based on incoming and/or modified data
             f3 = gui.addFolder('Game session');
+            f3.add(game.session, 'timer').listen();
             f3.add(game.session, 'game').listen();
             f3.add(game.session, 'player').listen();
+            f3.add(game.session, 'winner').listen();
             f3.add(game.session, 'score').listen();
-            f3.add(game.session, 'limit').listen();
+            f3.add(game.session, 'limit', 0, 50).listen().onFinishChange(function(){
+                var player1Limit = game.session.limit;
+                var player2Limit = 100 - game.session.limit;
+
+                $(".border1").css("left", player1Limit +'%');
+                $(".border2").css("left", player2Limit +'%');
+            });
             f3.add(game.session, 'frameCount').listen();
             f3.add(game.session, 'idleCount').listen();
         }

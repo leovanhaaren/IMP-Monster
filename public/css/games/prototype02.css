@@ -4,9 +4,9 @@
 // ########            Game objects            ########
 // ##################################################*/
 
-#ball1,
-#ball2,
-#ball3 {
+.ball1,
+.ball2,
+.ball3 {
     position: absolute;
     width: 100px;
     height: 100px;
@@ -32,7 +32,7 @@
     -webkit-animation: movingcircle 15s infinite;
 }
 
-#ball2 {
+.ball2 {
     top: 50%;
 
     background: green;
@@ -40,7 +40,7 @@
     -webkit-animation: movingcircle 10s infinite;
 }
 
-#ball3 {
+.ball3 {
     top: 20%;
 
     background: red;
