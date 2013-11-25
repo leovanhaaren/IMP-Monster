@@ -120,7 +120,7 @@ var monsterApp = angular.module('app', ['ui.router']);
             appEnabled:     false,
             whiteThreshold: 250,
             confidence:     15,
-            reset:          300
+            reset:          120
         };
 
         // Game session settings

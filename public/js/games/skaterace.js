@@ -19,7 +19,7 @@
         // When object is hit, do something
         $(window).on('hit', function(ev, data){
             // Reset idle timer
-            game.idleCount = 0;
+            game.session.idleCount = 0;
 
             //Check if object is locked, else lock it
             if($(data.spot.el).hasClass('locked'))

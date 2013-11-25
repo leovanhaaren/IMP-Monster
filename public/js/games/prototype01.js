@@ -10,7 +10,7 @@
         // When object is hit, do something
         $(window).on('hit', function(ev, data){
             // Reset idle timer
-            game.idleCount = 0;
+            game.session.idleCount = 0;
 
             // Get data from object and remove it from scene
             var id    = $(data.spot.el).attr('class');

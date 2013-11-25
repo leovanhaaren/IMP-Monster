@@ -99,9 +99,9 @@
         $scope.timer = function() {
             game.session.idleTimer = $timeout(function() {
                 game.session.timer++;
-                game.idleCount++;
+                game.session.idleCount++;
 
-                if(game.idleCount >= game.reset) {
+                if(game.session.idleCount >= game.reset) {
                     console.log('[Game] Player idle for too long, resetting game');
                     game.idleCount = 0;
 
