@@ -26,19 +26,20 @@
                 success(function(game) {
                     $rootScope.game.name       = game.name.toLowerCase().replace(/\s+/g, '');
                     $rootScope.game.countdown  = game.countdown;
-                    $rootScope.game.remote     = game.remote;
+                    $rootScope.game.cooldown   = game.cooldown;
                     $rootScope.game.reset      = game.reset;
+                    $rootScope.game.remote     = game.remote;
                     $rootScope.game.conditions = game.conditions;
 
                     $rootScope.log('game', 'Received game data from server');
+
+                    $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
+
+                    $state.go('countdown');
                 }).
                 error(function() {
                     $rootScope.log('game', 'Error getting game data');
                 });
-
-            $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
-
-            $state.go('countdown');
         });
 
         // Listen for game updates from server, in case game needs to be stopped
@@ -80,11 +81,15 @@
 
     monsterApp.controller('countdownCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
         // Skip countdown if not needed
-        if($rootScope.game.countdown == 0) $state.go('start'); return;
+        if($rootScope.game.countdown == 0) {
+            $state.go('start');
+            return;
+        }
 
         $rootScope.log('game', 'Counting down');
 
         // Count down and go to play state
+        $rootScope.session.countdownCount = $rootScope.game.countdown;
         $rootScope.message = $rootScope.session.countdownCount;
 
         $scope.timer = function() {
@@ -155,20 +160,22 @@
 
         $rootScope.message = "Het spel is afgelopen";
 
+        var cooldown = ($rootScope.game.cooldown / 2) * 1000;
+
         $scope.showScore = function() {
             $timeout(function() {
                 if($rootScope.message === "")
                     $rootScope.message = "Je score is " + $rootScope.session.score;
 
                 $scope.goIdle();
-            }, 5000);
+            }, cooldown);
         };
         $scope.showScore();
 
         $scope.goIdle = function() {
             $timeout(function() {
                 $state.go('idle');
-            }, 5000);
+            }, cooldown);
         };
 
     }]);

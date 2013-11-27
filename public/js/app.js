@@ -116,7 +116,8 @@ var monsterApp = angular.module('app', ['ui.router']);
             name:           "",
             countdown:      0,
             remote:         false,
-            reset:          300,
+            reset:          0,
+            cooldown:       0,
 
             conditions: {
                 time:       120,
@@ -196,40 +197,49 @@ var monsterApp = angular.module('app', ['ui.router']);
 
             f1.add($rootScope.engine, 'socketEnabled');
 
-            f1.add($rootScope.engine.detection, 'show');
-            f1.add($rootScope.engine.detection, 'mirrorHorizontal');
-            f1.add($rootScope.engine.detection, 'mirrorVertical');
-            f1.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
-            f1.add($rootScope.engine.detection, 'confidence',     1, 100);
-
-            f1.add($rootScope.engine.areaOfInterest, 'show');
-            f1.add($rootScope.engine.areaOfInterest, 'x',      0, 640).step(5);
-            f1.add($rootScope.engine.areaOfInterest, 'y',      0, 480).step(5);
-            f1.add($rootScope.engine.areaOfInterest, 'width',  0, 640).step(5);
-            f1.add($rootScope.engine.areaOfInterest, 'height', 0, 480).step(5);
-
             f1.add($rootScope.engine, 'frameCount').listen();
 
 
-            // General game settings
-            f2 = gui.addFolder('Game');
+            f2 = gui.addFolder('Detection');
 
-            f2.add($rootScope.game, 'remote');
-            f2.add($rootScope.game, 'reset');
+            f2.add($rootScope.engine.detection, 'show');
+            f2.add($rootScope.engine.detection, 'mirrorHorizontal');
+            f2.add($rootScope.engine.detection, 'mirrorVertical');
+            f2.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
+            f2.add($rootScope.engine.detection, 'confidence',     1, 100);
+
+
+            f3 = gui.addFolder('Input');
+
+            f3.add($rootScope.engine.areaOfInterest, 'show');
+            f3.add($rootScope.engine.areaOfInterest, 'x',      0, 640).step(5);
+            f3.add($rootScope.engine.areaOfInterest, 'y',      0, 480).step(5);
+            f3.add($rootScope.engine.areaOfInterest, 'width',  0, 640).step(5);
+            f3.add($rootScope.engine.areaOfInterest, 'height', 0, 480).step(5);
+
+
+            // General game settings
+            f4 = gui.addFolder('Game');
+
+            f4.add($rootScope.game, 'name').listen();
+            f4.add($rootScope.game, 'countdown').listen();
+            f4.add($rootScope.game, 'cooldown').listen();
+            f4.add($rootScope.game, 'reset').listen();
+            f4.add($rootScope.game, 'remote').listen();
 
 
             // Specific game session data
             // Updates based on incoming and/or modified data
-            f3 = gui.addFolder('Session');
+            f5 = gui.addFolder('Session');
 
-            f3.add($rootScope.session, 'durationCount').listen();
-            f3.add($rootScope.session, 'countdownCount').listen();
-            f3.add($rootScope.session, 'idleCount').listen();
+            f5.add($rootScope.session, 'durationCount').listen();
+            f5.add($rootScope.session, 'countdownCount').listen();
+            f5.add($rootScope.session, 'idleCount').listen();
 
-            f3.add($rootScope.session, 'game').listen();
-            f3.add($rootScope.session, 'player').listen();
+            f5.add($rootScope.session, 'game').listen();
+            f5.add($rootScope.session, 'player').listen();
 
-            f3.add($rootScope.session, 'score').listen();
+            f5.add($rootScope.session, 'score').listen();
         }
 
 
@@ -310,7 +320,7 @@ var monsterApp = angular.module('app', ['ui.router']);
         // Update function which gets called each iteration
         function update() {
             // Raise framecount
-            $rootScope.session.frameCount++;
+            $rootScope.engine.frameCount++;
 
             // Draw the detection canvas
             draw();
