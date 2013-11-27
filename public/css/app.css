@@ -4,9 +4,11 @@
 
 @font-face {
     font-family: 'Open Sans';
-    font-style: normal;
+    font-style:  normal;
     font-weight: 400;
-    src: local('Open Sans'), local('OpenSans'), url(http://themes.googleusercontent.com/static/fonts/opensans/v6/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
+    src:         local('Open Sans'),
+                 local('OpenSans'),
+                 url(http://themes.googleusercontent.com/static/fonts/opensans/v6/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
 }
 
 
@@ -15,12 +17,12 @@
 // ##################################################*/
 
 body {
-    background: #eee;
+    background:  #eee;
     font-family: 'Open Sans', sans-serif;
-    font-size: 12px;
-    padding: 0;
-    margin: 0;
-    color: #333;
+    font-size:   12px;
+    padding:     0;
+    margin:      0;
+    color:       #333;
 }
 
 video { display: none; }
@@ -28,43 +30,40 @@ video { display: none; }
 #overlay,
 #content {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    left:     0;
+    right:    0;
+    top:      0;
+    bottom:   0;
     overflow: hidden;
-    z-index: 0;
+    z-index:  0;
 }
 
-#overlay {
-    z-index: 1;
-}
+h1 {
+    position:   absolute;
+    width:      100%;
+    top:        50%;
+    margin-top: -35px;
+    z-index:    1;
 
-#overlay > h1 {
-    position: absolute;
-    width: 800px;
-    left: 50%;
-    top: 50%;
-    margin: -35px 0 0 -400px;
-    font: 75px Arial;
-    color: #FFF;
+    font:       64px Arial;
+    color:      #FFF;
     text-align: center;
 }
 
 #input {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    display: none;
+    left:     0;
+    top:      0;
+    width:    100%;
+    display:  none;
 }
 
 #detection {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    opacity: 1;
+    left:     0;
+    top:      0;
+    width:    100%;
+    opacity:  1;
 }
 
 /* ####################################################
@@ -75,10 +74,10 @@ video { display: none; }
 #hotspots,
 #bg {
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
+    left:     0;
+    top:      0;
+    height:   100%;
+    width:    100%;
 }
 
 #content {

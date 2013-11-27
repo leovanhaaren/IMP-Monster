@@ -59,49 +59,47 @@ var monsterApp = angular.module('app', ['ui.router']);
 // ####################################################
 
     monsterApp.run(['$rootScope', '$state', '$stateParams', function ($rootScope, $state, $stateParams) {
+
         // State hack
         // So we know what our engine is currently doing
         $rootScope.$state       = $state;
         $rootScope.$stateParams = $stateParams;
 
-        console.log('[Engine] Initializing');
-
-        // Connect with the Socket.io server
-        $rootScope.socket = io.connect('http://145.89.128.162:2403');
-        console.log('[Socket.io] Connected to: http://145.89.128.162:2403');
 
         // ####################################################
         // ########          Engine settings           ########
         // ####################################################
 
-        // Video input settings
-        settings = {
-            debug: true,
+        // Engine settings
+        $rootScope.engine = {
+            debug:                true,
+            debugDetection:       false,
+
+            socketEnabled:        true,
+
             detection: {
-                mirrorHorizontal: function() {
-                    context.translate(canvas.width, 0);
-                    context.scale(-1, 1);
-                    console.log('[Detection] Flipped horizontally');
-                },
-                mirrorVertical:   function() {
-                    context.translate(0, canvas.height);
-                    context.scale(1, -1);
-                    console.log('[Detection] Flipped vertically');
-                }
+                show:             true,
+                mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
+                mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
+                whiteThreshold:   225,
+                confidence:       15
             },
+
             areaOfInterest: {
-                x:         85,
-                y:         35,
-                width:     485,
-                height:    420,
-                thickness: 2,
-                color:     '#16CFDC',
-                show:      false
-            }
+                show:             false,
+                x:                85,
+                y:                35,
+                width:            485,
+                height:           420,
+                thickness:        2,
+                color:            '#16CFDC'
+            },
+
+            frameCount:           0
         };
 
         // FPS meter settings
-        meter = new FPSMeter({
+        $rootScope.meter = new FPSMeter({
             theme:   'transparent',
             heat:    1,
             graph:   1,
@@ -114,27 +112,35 @@ var monsterApp = angular.module('app', ['ui.router']);
         // ####################################################
 
         // General game settings
-        game = {
-            debug:          false,
-            canvasToggle:   function() { $("#canvas").toggle(); },
-            appEnabled:     false,
-            whiteThreshold: 250,
-            confidence:     15,
-            reset:          120
+        $rootScope.game = {
+            name:           "",
+            countdown:      0,
+            remote:         false,
+            reset:          300,
+
+            conditions: {
+                time:       120,
+                score:      50,
+                area:       10
+            },
+
+            durationTimer:  null,
+            countdownTimer: null,
+            idleTimer:      null
         };
 
-        // Game session settings
-        game.session = {
-            timer:  0,
-            game:   "",
-            player: "",
-            winner: "",
-            score:  0,
-            limit:  25,
-            frameCount: 0,
-            idleCount:  0,
-            idleTimer: null
+        // Session settings
+        $rootScope.session = {
+            durationCount:  0,
+            countdownCount: 0,
+            idleCount:      0,
+
+            game:           "",
+            player:         "",
+
+            score:          0
         };
+
 
         // ####################################################
         // ########            DOM settings            ########
@@ -150,59 +156,82 @@ var monsterApp = angular.module('app', ['ui.router']);
 
 
         // ####################################################
+        // ########          Logging functions         ########
+        // ####################################################
+
+        $rootScope.log = function(type, msg) {
+            if($rootScope.engine.debug)
+                console.log('[' + type.toUpperCase() + '] ' + msg);
+        }
+
+
+        // ####################################################
+        // ########       External dependencies        ########
+        // ####################################################
+
+        // Connect with the Socket.io server
+        $rootScope.socket = io.connect('http://teammonster.nl:2403');
+
+        $rootScope.socket.on('connect', function () {
+            $rootScope.log('socket.io', 'Connected to server');
+        });
+
+
+        // ####################################################
         // ########            GUI settings            ########
         // ####################################################
 
         // DAT.gui setup, for real-time engine parameters
         function setupGUI() {
-            console.log('[Engine] Initialized GUI');
+            $rootScope.log('engine', 'Initialized GUI');
 
             // Define DAT.GUI
             gui = new dat.GUI();
 
             // Video input settings
-            f1 = gui.addFolder('Input');
+            f1 = gui.addFolder('Engine');
 
-            f1.add(settings, 'debug').onFinishChange(function(){
-                // Clear canvas
-                context.clearRect(0, 0, canvas.width, canvas.height);
-            });
-            f1.add(settings.areaOfInterest, 'x',      0, 640).step(5);
-            f1.add(settings.areaOfInterest, 'y',      0, 480).step(5);
-            f1.add(settings.areaOfInterest, 'width',  0, 640).step(5);
-            f1.add(settings.areaOfInterest, 'height', 0, 480).step(5);
-            f1.add(settings.areaOfInterest, 'show');
-            f1.add(settings.detection,      'mirrorHorizontal');
-            f1.add(settings.detection,      'mirrorVertical');
-            f1.open();
+            f1.add($rootScope.engine, 'debug');
+            f1.add($rootScope.engine, 'debugDetection');
+
+            f1.add($rootScope.engine, 'socketEnabled');
+
+            f1.add($rootScope.engine.detection, 'show');
+            f1.add($rootScope.engine.detection, 'mirrorHorizontal');
+            f1.add($rootScope.engine.detection, 'mirrorVertical');
+            f1.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
+            f1.add($rootScope.engine.detection, 'confidence',     1, 100);
+
+            f1.add($rootScope.engine.areaOfInterest, 'show');
+            f1.add($rootScope.engine.areaOfInterest, 'x',      0, 640).step(5);
+            f1.add($rootScope.engine.areaOfInterest, 'y',      0, 480).step(5);
+            f1.add($rootScope.engine.areaOfInterest, 'width',  0, 640).step(5);
+            f1.add($rootScope.engine.areaOfInterest, 'height', 0, 480).step(5);
+
+            f1.add($rootScope.engine, 'frameCount').listen();
+
 
             // General game settings
             f2 = gui.addFolder('Game');
-            f2.add(game, 'debug');
-            f2.add(game, 'canvasToggle');
-            f2.add(game, 'appEnabled');
-            f2.add(game, 'whiteThreshold', 0, 255);
-            f2.add(game, 'confidence');
-            f2.add(game, 'reset', 0, 300);
+
+            f2.add($rootScope.game, 'remote');
+            f2.add($rootScope.game, 'reset');
+
 
             // Specific game session data
             // Updates based on incoming and/or modified data
-            f3 = gui.addFolder('Game session');
-            f3.add(game.session, 'timer').listen();
-            f3.add(game.session, 'game').listen();
-            f3.add(game.session, 'player').listen();
-            f3.add(game.session, 'winner').listen();
-            f3.add(game.session, 'score').listen();
-            f3.add(game.session, 'limit', 0, 50).listen().onFinishChange(function(){
-                var player1Limit = game.session.limit;
-                var player2Limit = 100 - game.session.limit;
+            f3 = gui.addFolder('Session');
 
-                $(".border1").css("left", player1Limit +'%');
-                $(".border2").css("left", player2Limit +'%');
-            });
-            f3.add(game.session, 'frameCount').listen();
-            f3.add(game.session, 'idleCount').listen();
+            f3.add($rootScope.session, 'durationCount').listen();
+            f3.add($rootScope.session, 'countdownCount').listen();
+            f3.add($rootScope.session, 'idleCount').listen();
+
+            f3.add($rootScope.session, 'game').listen();
+            f3.add($rootScope.session, 'player').listen();
+
+            f3.add($rootScope.session, 'score').listen();
         }
+
 
         // ####################################################
         // ########            Webcam setup            ########
@@ -210,14 +239,15 @@ var monsterApp = angular.module('app', ['ui.router']);
 
         // Define webcam error
         var webcamError = function (e) {
-            console.log('[Input] Webcam error: ', e);
+            $rootScope.log('input', 'Webcam error: ' + e);
         };
 
         // Prepare video stream
         if (navigator.webkitGetUserMedia) {
             navigator.webkitGetUserMedia({video: true}, function (stream) {
                 video.src = window.webkitURL.createObjectURL(stream);
-                console.log('[Engine] Initialized webcam');
+
+                $rootScope.log('engine', 'Initialized webcam');
 
                 setupGUI();
                 startLoop();
@@ -260,7 +290,8 @@ var monsterApp = angular.module('app', ['ui.router']);
 
         // Entry point for the loop
         function startLoop() {
-            console.log('[Engine] Starting game loop');
+            $rootScope.log('engine', 'Starting game loop');
+
             update();
         }
 
@@ -279,7 +310,7 @@ var monsterApp = angular.module('app', ['ui.router']);
         // Update function which gets called each iteration
         function update() {
             // Raise framecount
-            game.session.frameCount++;
+            $rootScope.session.frameCount++;
 
             // Draw the detection canvas
             draw();
@@ -294,27 +325,33 @@ var monsterApp = angular.module('app', ['ui.router']);
 
             // FPSmeter
             // Give it a tick to update fps
-            meter.tick();
+            $rootScope.meter.tick();
         }
 
         // Draw function which gets called each iteration
-        // Only draws the video input on the canvas
+        // Only draws the video input on the canvas when detection is enabled
         function draw() {
+            if(!$rootScope.engine.detection.show) return;
+
             // Show AOI only if enabled
-            if(settings.areaOfInterest.show) {
+            if($rootScope.engine.areaOfInterest.show) {
                 // Draw video input
                 context.drawImage(video, 0, 0, video.width, video.height);
 
                 // Draw selection on footage
-                context.lineWidth = settings.areaOfInterest.thickness;
-                context.strokeStyle = settings.areaOfInterest.color;
-                context.strokeRect(settings.areaOfInterest.x, settings.areaOfInterest.y, settings.areaOfInterest.width, settings.areaOfInterest.height);
+                context.lineWidth   = $rootScope.engine.areaOfInterest.thickness;
+                context.strokeStyle = $rootScope.engine.areaOfInterest.color;
+
+                context.strokeRect( $rootScope.engine.areaOfInterest.x,
+                                    $rootScope.engine.areaOfInterest.y,
+                                    $rootScope.engine.areaOfInterest.width,
+                                    $rootScope.engine.areaOfInterest.height );
             } else {
                 // Draw video input based on selection
-                context.drawImage(video, settings.areaOfInterest.x,
-                                         settings.areaOfInterest.y,
-                                         settings.areaOfInterest.width,
-                                         settings.areaOfInterest.height,
+                context.drawImage(video, $rootScope.engine.areaOfInterest.x,
+                                         $rootScope.engine.areaOfInterest.y,
+                                         $rootScope.engine.areaOfInterest.width,
+                                         $rootScope.engine.areaOfInterest.height,
                                          0, 0, canvas.width, canvas.height);
             }
         }
@@ -326,11 +363,11 @@ var monsterApp = angular.module('app', ['ui.router']);
 
         // Gets all hotspots from the scene, so we can later check if players hits one of these
         function getHotspots() {
-            hotspots = [];
+            $rootScope.hotspots = [];
 
             $('#hotspots').children().each(function (i, el) {
                 var ratio = $("#canvas").width() / $('video').width();
-                hotspots[i] = {
+                $rootScope.hotspots[i] = {
                     x:      this.offsetLeft   / ratio,
                     y:      this.offsetTop    / ratio,
                     width:  this.scrollWidth  / ratio,
@@ -349,6 +386,7 @@ var monsterApp = angular.module('app', ['ui.router']);
         // Will trigger a hit event when player hits a object based on threshold
         function checkHotspots() {
             var data;
+            var hotspots = $rootScope.hotspots;
 
             for (var h = 0; h < hotspots.length; h++) {
                 var canvasData = context.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
@@ -360,14 +398,17 @@ var monsterApp = angular.module('app', ['ui.router']);
                 while (i < (canvasData.data.length * 0.25)) {
                     white = (canvasData.data[i * 4] + canvasData.data[i * 4 + 1] + canvasData.data[i * 4 + 2]) / 3;
 
-                    if(white >= game.whiteThreshold) confidence++;
+                    if(white >= $rootScope.engine.detection.whiteThreshold) confidence++;
                     ++i;
                 }
-                if(game.debug) console.log(confidence);
 
                 // over a small limit, consider that a movement is detected
-                if (confidence > game.confidence) {
-                    data = {confidence: confidence, spot: hotspots[h]};
+                if (confidence > $rootScope.engine.detection.confidence) {
+                    data = {
+                        confidence: confidence,
+                        spot: hotspots[h]
+                    };
+
                     $(data.spot.el).trigger('hit', data);
                 }
             }

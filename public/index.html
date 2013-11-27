@@ -9,10 +9,6 @@
     <link rel="stylesheet" href="css/games/skaterace.css"/>
 </head>
 <body>
-    <!-- Overlay which shows game-related messages, such as select game and the countdown -->
-    <div id="overlay" ng-hide="$state.includes('prototype01') || $state.includes('prototype02') || $state.includes('skaterace')">
-        <h1>{{message}}</h1>
-    </div>
     <!-- The actual video input and the game -->
     <div id="content">
         <!-- Hidden video input -->
@@ -24,6 +20,9 @@
         <!-- The scene where angular will inject the game's html code -->
         <div id="scene" ui-view></div>
         </div>
+        <!-- Shows game-related messages, such as select game and the countdown -->
+
+        <h1 ng-show="message">{{message}}</h1>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <script src='libs/angular.min.js'></script>
