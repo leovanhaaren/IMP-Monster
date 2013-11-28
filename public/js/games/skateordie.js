@@ -19,10 +19,10 @@
             $scope.type    = $(data.spot.el).data("type");
         }
 
-        $scope.newMonsterPosition = function() {
+        $scope.newScenePosition = function(element) {
             // Get scene dimensions minus size of the div
-            var h = $('#scene').height() - $('.monster').height();
-            var w = $('#scene').width()  - $('.monster').width();
+            var h = $('#scene').height() - $(element).height();
+            var w = $('#scene').width()  - $(element).width();
 
             var nh = Math.floor(Math.random() * h);
             var nw = Math.floor(Math.random() * w);
@@ -33,9 +33,9 @@
 
         $scope.animateMonster = function() {
             var $target = $('.monster');
-            var newq    = $scope.newMonsterPosition();
+            var newq    = $scope.newScenePosition('.monster');
             var oldq    = $target.offset();
-            var speed   = $scope.calculateMonsterSpeed([oldq.top, oldq.left], newq);
+            var speed   = $scope.calculateMovementSpeed([oldq.top, oldq.left], newq);
 
             $rootScope.log('monster', 'Moving to ' + newq[0] + ' ' + newq[1] +' duration ' + speed / 1000 + 'sec');
 
@@ -47,7 +47,7 @@
             });
         };
 
-        $scope.calculateMonsterSpeed = function(prev, next) {
+        $scope.calculateMovementSpeed = function(prev, next) {
             var x = Math.abs(prev[1] - next[1]);
             var y = Math.abs(prev[0] - next[0]);
 
@@ -68,7 +68,16 @@
         }
 
         $scope.updateMonster = function() {
+            $scope.hotspot.remove();
 
+            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+
+            $state.go('finished');
+        }
+
+        $scope.updateScene = function() {
+            // Remove hotspot
+            $scope.hotspot.remove();
         }
 
         $scope.checkWin = function() {
@@ -81,22 +90,22 @@
             }
         }
 
-        $(window).on('tick', function(){
+        $(window).on('tick', function(ev){
             $rootScope.session.score++;
+
+            // Reset idle timer
+            $rootScope.session.idleCount = 0;
+
+            $scope.checkWin();
         });
 
         // When object is hit, calculate new area
         $(window).on('hit', function(ev, data){
-            // Reset idle timer
-            $rootScope.session.idleCount = 0;
-
             $scope.getHotspot(data);
 
-            $scope.updateScore();
+            //$scope.updateScore();
 
             $scope.updateMonster();
-
-            $scope.checkWin();
         });
 
         $rootScope.log('monster', 'Roaming');

@@ -133,7 +133,7 @@
                 $rootScope.session.idleCount++;
 
                 // Broadcast a tick for the minigames to raise score
-                $().trigger('tick');
+                $(window).trigger('tick');
 
                 if($rootScope.session.idleCount >= $rootScope.game.reset) {
                     $rootScope.log('game', 'Player idle for too long, resetting the game');
@@ -163,6 +163,9 @@
         $timeout.cancel($rootScope.game.durationTimer);
         $timeout.cancel($rootScope.game.countdownTimer);
         $timeout.cancel($rootScope.game.idleTimer);
+
+        // Remove event handler
+        $(window).off('tick');
 
         // Update message if empty
         if($rootScope.message == "")
