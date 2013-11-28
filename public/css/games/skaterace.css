@@ -18,14 +18,14 @@
     font-family: 'Open Sans', sans-serif;
     font-size: 25px;
     font-weight: bold;
-
-    /*background: rgba(255, 255, 255, 0.5);*/
 }
 
 #hotspots > .top     { top:    0; }
 #hotspots > .bottom  { bottom: 0; }
 #hotspots > .player1 { left:   0; }
 #hotspots > .player2 { right:  0; }
+
+.locked { background: rgba(0, 0, 0, 0.5); }
 
 
 /* ####################################################
@@ -40,7 +40,7 @@
 
 #bg > .player1 {
     left: 0;
-    background: rgb(75, 180, 255);
+    background: rgb(157, 255, 65);
 }
 
 #bg > .player2 {

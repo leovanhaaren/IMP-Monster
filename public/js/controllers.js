@@ -11,14 +11,16 @@
 
         // Init socket events
         // Listen for game sessions from server, so we can start the game when needed
-        $rootScope.socket.on('game:start', function (session) {
+        $rootScope.socket.on('session:start', function (session) {
             if(!$rootScope.engine.socketEnabled) return;
 
-            // Update dat.GUI
+            // Prepare session
+            $rootScope.session.id             = session.id;
             $rootScope.session.durationCount  = 0;
             $rootScope.session.countdownCount = 0;
             $rootScope.session.idleCount      = 0;
             $rootScope.session.player         = session.player;
+            $rootScope.session.state          = session.state;
             $rootScope.session.score          = 0;
 
             // Get game data from server
@@ -31,23 +33,23 @@
                     $rootScope.game.remote     = game.remote;
                     $rootScope.game.conditions = game.conditions;
 
-                    $rootScope.log('game', 'Received game data from server');
-
                     $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
 
                     $state.go('countdown');
                 }).
                 error(function() {
-                    $rootScope.log('game', 'Error getting game data');
+                    $rootScope.log('game', 'Error getting game data for session ' + session.id);
+
+                    $state.go('idle');
                 });
         });
 
         // Listen for game updates from server, in case game needs to be stopped
-        $rootScope.socket.on('game:update', function (session) {
+        $rootScope.socket.on('session:cancel', function (session) {
             if(!$rootScope.engine.socketEnabled) return;
 
-            // Only stop inactive sessions
-            if(session.active) return;
+            // Cancel event when countdown is not finished yet
+            if($rootScope.session.countdownCount > 0) return;
 
             $rootScope.log('socket.io', 'Stopped game session ' + session.id);
 
@@ -63,14 +65,16 @@
     monsterApp.controller('idleCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
         $rootScope.log('game', 'Idle');
 
-        $rootScope.message = "Selecteer een spel";
+        $rootScope.message = "Selecteer een spel<br/>op de tablet";
 
-        // Update dat.GUI
+        // Reset dat.GUI
+        $rootScope.session.id             = "";
         $rootScope.session.durationCount  = 0;
         $rootScope.session.countdownCount = 0;
         $rootScope.session.idleCount      = 0;
         $rootScope.session.game           = "";
         $rootScope.session.player         = "";
+        $rootScope.session.state          = "";
         $rootScope.session.score          = 0;
     }]);
 
@@ -90,12 +94,11 @@
 
         // Count down and go to play state
         $rootScope.session.countdownCount = $rootScope.game.countdown;
-        $rootScope.message = $rootScope.session.countdownCount;
+        $rootScope.message = $rootScope.session.countdownCount.toString();
 
         $scope.timer = function() {
             $rootScope.game.countdownTimer = $timeout(function() {
-                $rootScope.session.countdownCount--;
-                $rootScope.message = $rootScope.session.countdownCount;
+                $rootScope.message = $rootScope.session.countdownCount.toString();
 
                 if($rootScope.session.countdownCount < 1) {
                     $rootScope.log('game', 'Moving to ' + $rootScope.game.name);
@@ -106,6 +109,8 @@
                     $state.go('start');
                 } else {
                     $rootScope.log('countdown', $rootScope.session.countdownCount);
+
+                    $rootScope.session.countdownCount--;
                     $scope.timer();
                 }
             }, 1000);
@@ -127,10 +132,11 @@
                 $rootScope.session.durationCount++;
                 $rootScope.session.idleCount++;
 
+                // Broadcast a tick for the minigames to raise score
+                $().trigger('tick');
+
                 if($rootScope.session.idleCount >= $rootScope.game.reset) {
                     $rootScope.log('game', 'Player idle for too long, resetting the game');
-
-                    $rootScope.session.idleCount = 0;
 
                     $timeout.cancel($rootScope.game.idleTimer);
 
@@ -150,7 +156,7 @@
 // ########        Game end controller         ########
 // ####################################################
 
-    monsterApp.controller('finishedCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
+    monsterApp.controller('finishedCtrl', ['$scope', '$rootScope', '$state', '$timeout', '$compile', '$http', function($scope, $rootScope, $state, $timeout, $compile, $http) {
         $rootScope.log('game', 'Finished');
 
         // Cancel timers
@@ -158,24 +164,26 @@
         $timeout.cancel($rootScope.game.countdownTimer);
         $timeout.cancel($rootScope.game.idleTimer);
 
-        $rootScope.message = "Het spel is afgelopen";
+        // Update message if empty
+        if($rootScope.message == "")
+            $rootScope.message = "Het spel is afgelopen";
 
-        var cooldown = ($rootScope.game.cooldown / 2) * 1000;
+        // Update score and state
+        $http({
+            method: 'POST',
+            url: 'http://teammonster.nl:2403/gamesessions/' + $rootScope.session.id,
+            data:
+            {
+                "score": $rootScope.session.score,
+                "state": "ended"
+            }
+        });
 
-        $scope.showScore = function() {
-            $timeout(function() {
-                if($rootScope.message === "")
-                    $rootScope.message = "Je score is " + $rootScope.session.score;
-
-                $scope.goIdle();
-            }, cooldown);
-        };
-        $scope.showScore();
-
-        $scope.goIdle = function() {
+        // Go to idle state after cooldown has expired
+        $scope.timer = function() {
             $timeout(function() {
                 $state.go('idle');
-            }, cooldown);
+            }, $rootScope.game.cooldown * 1000);
         };
-
+        $scope.timer();
     }]);

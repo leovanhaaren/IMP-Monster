@@ -4,7 +4,7 @@
 // ########        Skaterace controller        ########
 // ####################################################
 
-    monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
+    monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
         $rootScope.log('game', 'Started ' + $rootScope.game.name);
 
         // Playfield divider, representing the score in this game in %
@@ -13,6 +13,10 @@
         // Set score limits
         $scope.player1Limit = $rootScope.game.conditions.area;
         $scope.player2Limit = 100 - $rootScope.game.conditions.area;
+
+        // Update borders
+        $(".border1").css("width", $rootScope.game.conditions.area +'%');
+        $(".border2").css("width", $rootScope.game.conditions.area +'%');
 
         // Hotspot data, updated on every hit
         $scope.hotspot = null;
@@ -33,10 +37,11 @@
         $scope.lockHotspot = function() {
             //Check if object is locked, else lock it
             if($scope.hotspot.hasClass('locked'))
-                return;
+                return true;
             else
                 $scope.hotspot.addClass('locked');
 
+            // TODO: FIX THIS TIMER
             // Remove locked state after x seconds
             setTimeout(function () {
                 $scope.hotspot.removeClass('locked');
@@ -52,6 +57,9 @@
                 $scope.areaPercentage += $scope.score;
             else
                 $scope.areaPercentage -= $scope.score;
+
+            // Log game score
+            $rootScope.log('game', $scope.player + ' claimed ' + $scope.score +'% of playfield');
         }
 
         $scope.updateScene = function() {
@@ -67,7 +75,7 @@
             // Check if we have a winner
             if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
                 // Set message for end screen
-                $rootScope.message = $scope.player + " is de winnaar";
+                $rootScope.message = "Het spel is afgelopen<br/>" + $scope.player + " is de winnaar";
 
                 $state.go('finished');
             }
@@ -80,10 +88,9 @@
 
             $scope.getHotspot(data);
 
-            $scope.updateScore();
+            if($scope.lockHotspot()) return;
 
-            // Log game score
-            $rootScope.log('game', $scope.player + ' scored ' + $scope.score +'%');
+            $scope.updateScore();
 
             $scope.updateScene();
 

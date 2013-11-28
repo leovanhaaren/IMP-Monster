@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var monsterApp = angular.module('app', ['ui.router']);
+var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
 
 // ####################################################
@@ -32,20 +32,30 @@ var monsterApp = angular.module('app', ['ui.router']);
                 url: "/start",
                 controller: "startCtrl"
             })
-            .state('prototype01', {
-                url: "/prototype01",
-                templateUrl: "games/prototype01.html",
-                controller: "prototype01Ctrl"
+            .state('monsterballv1', {
+                url: "/monsterballv1",
+                templateUrl: "games/monsterballv1.html",
+                controller: "monsterballCtrl"
             })
-            .state('prototype02', {
-                url: "/prototype02",
-                templateUrl: "games/prototype02.html",
-                controller: "prototype01Ctrl"
+            .state('monsterballv2', {
+                url: "/monsterballv2",
+                templateUrl: "games/monsterballv2.html",
+                controller: "monsterballCtrl"
             })
-            .state('skaterace', {
-                url: "/skaterace",
-                templateUrl: "games/skaterace.html",
+            .state('skateracev1', {
+                url: "/skateracev1",
+                templateUrl: "games/skateracev1.html",
                 controller: "skateraceCtrl"
+            })
+            .state('skateracev2', {
+                url: "/skateracev2",
+                templateUrl: "games/skateracev2.html",
+                controller: "skateraceCtrl"
+            })
+            .state('skateordiev1', {
+                url: "/skateordiev1",
+                templateUrl: "games/skateordiev1.html",
+                controller: "skateordieCtrl"
             })
             .state('finished', {
                 url: "/finished",
@@ -132,12 +142,16 @@ var monsterApp = angular.module('app', ['ui.router']);
 
         // Session settings
         $rootScope.session = {
+            id:             0,
+
             durationCount:  0,
             countdownCount: 0,
             idleCount:      0,
 
             game:           "",
             player:         "",
+
+            state:          "",
 
             score:          0
         };
@@ -239,6 +253,8 @@ var monsterApp = angular.module('app', ['ui.router']);
             f5.add($rootScope.session, 'game').listen();
             f5.add($rootScope.session, 'player').listen();
 
+            f5.add($rootScope.session, 'state').listen();
+
             f5.add($rootScope.session, 'score').listen();
         }
 
@@ -287,6 +303,9 @@ var monsterApp = angular.module('app', ['ui.router']);
             canvases.width(content.width());
             canvases.height(content.height());
             content.css('left', (w - content.width()) / 2);
+
+            // Update font size
+            $('h1').css({'font-size': $(this).height() / 12 +"px"});
         }
         $(window).resize(resize);
         $(window).ready(function () {
