@@ -104,6 +104,7 @@
         $rootScope.session.countdownCount = $rootScope.game.countdown;
         $rootScope.message = $rootScope.session.countdownCount.toString();
 
+        $rootScope.session.countdownCount--;
         $scope.timer = function() {
             $rootScope.game.countdownTimer = $timeout(function() {
                 $rootScope.message = $rootScope.session.countdownCount.toString();

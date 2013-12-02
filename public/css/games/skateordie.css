@@ -47,6 +47,10 @@
 // ########             Game scene             ########
 // ##################################################*/
 
+#bg.gameover {
+    -webkit-animation: gameover 2.5s linear;
+    -webkit-animation-fill-mode: forwards;
+}
 
 
 /* ####################################################
@@ -55,13 +59,38 @@
 
 @-moz-keyframes spin {
     from { -moz-transform: rotate(0deg); }
-    to { -moz-transform: rotate(360deg); }
+    to   { -moz-transform: rotate(360deg); }
 }
 @-webkit-keyframes spin {
     from { -webkit-transform: rotate(0deg); }
-    to { -webkit-transform: rotate(360deg); }
+    to   { -webkit-transform: rotate(360deg); }
 }
 @keyframes spin {
     from {transform:rotate(0deg);}
-    to {transform:rotate(360deg);}
+    to   {transform:rotate(360deg);}
+}
+
+@-moz-keyframes gameover {
+    0%   { background: transparent; }
+    20%  { background: red; }
+    40%  { background: transparent; }
+    60%  { background: red; }
+    80%  { background: transparent; }
+    100% { background: red; }
+}
+@-webkit-keyframes gameover {
+    0%   { background: transparent; }
+    20%  { background: red; }
+    40%  { background: transparent; }
+    60%  { background: red; }
+    80%  { background: transparent; }
+    100% { background: red; }
+}
+@keyframes gameover {
+    0%   { background: transparent; }
+    20%  { background: red; }
+    40%  { background: transparent; }
+    60%  { background: red; }
+    80%  { background: transparent; }
+    100% { background: red; }
 }

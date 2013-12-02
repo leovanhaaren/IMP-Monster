@@ -40,7 +40,7 @@
         }
 
         $scope.respawnElement = function() {
-            setTimeout(function () {
+            var respawn = setTimeout(function () {
                 $('#hotspots').append('<div class="' + $scope.class + '">' + $scope.score + '</div>');
             }, $scope.respawn * 1000);
         }

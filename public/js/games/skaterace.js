@@ -41,7 +41,6 @@
             else
                 $scope.hotspot.addClass('locked');
 
-            // TODO: FIX THIS TIMER
             // Remove locked state after x seconds
             var timer = setTimeout(function () {
                 $scope.hotspot.removeClass('locked');
