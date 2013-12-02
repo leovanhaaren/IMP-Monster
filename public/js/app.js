@@ -32,29 +32,29 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 url: "/start",
                 controller: "startCtrl"
             })
-            .state('monsterballv1', {
-                url: "/monsterballv1",
-                templateUrl: "games/monsterballv1.html",
+            .state('monsterball', {
+                url: "/monsterball",
+                templateUrl: "games/monsterball.html",
                 controller: "monsterballCtrl"
             })
-            .state('monsterballv2', {
-                url: "/monsterballv2",
-                templateUrl: "games/monsterballv2.html",
+            .state('monsterballen', {
+                url: "/monsterballen",
+                templateUrl: "games/monsterballen.html",
                 controller: "monsterballCtrl"
             })
-            .state('skateracev1', {
-                url: "/skateracev1",
-                templateUrl: "games/skateracev1.html",
+            .state('skaterace', {
+                url: "/skaterace",
+                templateUrl: "games/skaterace_single.html",
                 controller: "skateraceCtrl"
             })
-            .state('skateracev2', {
-                url: "/skateracev2",
-                templateUrl: "games/skateracev2.html",
+            .state('skaterace_dual', {
+                url: "/skaterace_dual",
+                templateUrl: "games/skaterace_dual.html",
                 controller: "skateraceCtrl"
             })
-            .state('skateordiev1', {
-                url: "/skateordiev1",
-                templateUrl: "games/skateordiev1.html",
+            .state('skateordie', {
+                url: "/skateordie",
+                templateUrl: "games/skateordie.html",
                 controller: "skateordieCtrl"
             })
             .state('finished', {
@@ -88,7 +88,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             socketEnabled:        true,
 
             detection: {
-                show:             true,
+                enabled:          true,
+                toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
                 whiteThreshold:   225,
@@ -216,7 +217,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             f2 = gui.addFolder('Detection');
 
-            f2.add($rootScope.engine.detection, 'show');
+            f2.add($rootScope.engine.detection, 'enabled');
+            f2.add($rootScope.engine.detection, 'toggleVisibility');
             f2.add($rootScope.engine.detection, 'mirrorHorizontal');
             f2.add($rootScope.engine.detection, 'mirrorVertical');
             f2.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
@@ -360,8 +362,6 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Draw function which gets called each iteration
         // Only draws the video input on the canvas when detection is enabled
         function draw() {
-            if(!$rootScope.engine.detection.show) return;
-
             // Show AOI only if enabled
             if($rootScope.engine.areaOfInterest.show) {
                 // Draw video input
@@ -417,7 +417,16 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             var data;
             var hotspots = $rootScope.hotspots;
 
+            if(!$rootScope.engine.detection.enabled) return;
+
             for (var h = 0; h < hotspots.length; h++) {
+                // Check if the hotspots location is within the canvas, else skip it
+                if(hotspots[h].x < 0) return;
+                if(hotspots[h].y < 0) return;
+
+                if((hotspots[h].x + hotspots[h].width)  >  $("#canvas").width()) return;
+                if((hotspots[h].y + hotspots[h].height) >  $("#canvas").height()) return;
+
                 var canvasData = context.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
                 var i = 0;
                 var white = 0;

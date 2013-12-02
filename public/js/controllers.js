@@ -4,7 +4,7 @@
 // ########          Init controller           ########
 // ####################################################
 
-    monsterApp.controller('initCtrl', ['$scope', '$rootScope', '$state', '$http', function($scope, $rootScope, $state, $http) {
+    monsterApp.controller('initCtrl', ['$scope', '$rootScope', '$state', '$timeout', '$http', function($scope, $rootScope, $state, $timeout, $http) {
         $rootScope.log('game', 'Init');
 
         $rootScope.message = "Zet webcam aan";
@@ -13,6 +13,14 @@
         // Listen for game sessions from server, so we can start the game when needed
         $rootScope.socket.on('session:start', function (session) {
             if(!$rootScope.engine.socketEnabled) return;
+
+            // Cancel timers
+            $timeout.cancel($rootScope.game.durationTimer);
+            $timeout.cancel($rootScope.game.countdownTimer);
+            $timeout.cancel($rootScope.game.idleTimer);
+
+            // Remove event handler
+            $(window).off('tick');
 
             // Prepare session
             $rootScope.session.id             = session.id;
@@ -24,9 +32,9 @@
             $rootScope.session.score          = 0;
 
             // Get game data from server
-            $http({method: 'GET', url: 'http://teammonster.nl:2403/games/' + session.gameID}).
+            $http({method: 'GET', url: 'http://teammonster.nl/games/' + session.gameID}).
                 success(function(game) {
-                    $rootScope.game.name       = game.name.toLowerCase().replace(/\s+/g, '');
+                    $rootScope.game.name       = game.prototype;
                     $rootScope.game.countdown  = game.countdown;
                     $rootScope.game.cooldown   = game.cooldown;
                     $rootScope.game.reset      = game.reset;
@@ -174,7 +182,7 @@
         // Update score and state
         $http({
             method: 'POST',
-            url: 'http://teammonster.nl:2403/gamesessions/' + $rootScope.session.id,
+            url: 'http://teammonster.nl/gamesessions/' + $rootScope.session.id,
             data:
             {
                 "score": $rootScope.session.score,

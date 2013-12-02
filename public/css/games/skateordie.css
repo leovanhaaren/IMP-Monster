@@ -6,13 +6,40 @@
 
 #hotspots > .monster {
     position: absolute;
+    width: 200px;
+    height: 200px;
+
+    top: 50%;
+    left: 50%;
+}
+
+#hotspots > .monster > img {
+    width: 200px;
+    height: 200px;
+}
+
+#hotspots > .powerup {
+    position: absolute;
     width: 100px;
     height: 100px;
+}
 
-    background: red;
+#hotspots > .powerup > img {
+    width: 100px;
+    height: 100px;
+}
 
-    -moz-border-radius: 100px;
-    -webkit-border-radius: 100px;
+#hotspots > .rotate {
+    -webkit-animation: spin 4s ease-out;
+}
+
+#hotspots > .flip > img {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
 }
 
 
@@ -25,3 +52,16 @@
 /* ####################################################
 // ########          Game animations           ########
 // ##################################################*/
+
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from {transform:rotate(0deg);}
+    to {transform:rotate(360deg);}
+}
