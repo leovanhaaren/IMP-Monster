@@ -4,70 +4,68 @@
 // ########     Prototype 01/02 controller     ########
 // ####################################################
 
-    monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
-        $rootScope.log('game', 'Started ' + $rootScope.game.name);
+monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+    $rootScope.log('game', 'Started ' + $rootScope.game.name);
+    $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
+    $rootScope.log('game', 'Score: ' + $rootScope.game.conditions.score);
 
-        // Hotspot data, updated on every hit
-        $scope.hotspot = null;
-        $scope.class   = "";
-        $scope.respawn = 0;
-        $scope.score   = 0;
 
-        $scope.getHotspot = function(data) {
-            // Get specific hotspot
-            $scope.hotspot = $(data.spot.el);
+    // ########     Hits
+    // ########     ----
 
-            // Get hotspot class
-            $scope.class   = $(data.spot.el).attr('class');
+    $scope.hotspotHit = function(powerup) {
+        // Raise score
+        $rootScope.session.score += powerup.data("score");
 
-            // Get respawn rate
-            $scope.respawn = $(data.spot.el).data("respawn");
+        // Remove powerup from scene
+        powerup.remove();
 
-            // Get score from the hotspot
-            $scope.score   = parseInt($(data.spot.el).html());
+        // Respawn hotspot after x seconds
+        var respawn = setTimeout(function () {
+            $('#hotspots').prepend(powerup.get(0));
+        }, powerup.data("respawn") * 1000);
+
+    }
+
+
+    // ########     Conditions
+    // ########     ----------
+
+    $scope.checkWin = function() {
+        // Check if we have a winner
+        if($rootScope.session.score >= $rootScope.game.conditions.score) {
+            // Set message for end screen
+            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+
+            $state.go('finished');
         }
+    }
 
-        $scope.updateScore = function() {
-            $rootScope.session.score += $scope.score;
+    $scope.checkDuration = function() {
+        // Check if we have a winner
+        if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
+            // Set message for end screen
+            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
 
-            // Log game score
-            $rootScope.log('game', 'Player scored ' + $scope.score);
+            $state.go('finished');
         }
+    }
 
-        $scope.updateScene = function() {
-            // Remove hotspot
-            $scope.hotspot.remove();
-        }
 
-        $scope.respawnElement = function() {
-            var respawn = setTimeout(function () {
-                $('#hotspots').append('<div class="' + $scope.class + '">' + $scope.score + '</div>');
-            }, $scope.respawn * 1000);
-        }
+    // ########     Game events
+    // ########     -----------
 
-        $scope.checkWin = function() {
-            // Check if we have a winner
-            if($rootScope.session.score >= $rootScope.game.conditions.score) {
-                // Set message for end screen
-                $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+    $(window).on('hit', function(ev, data){
+        // Reset idle timer
+        $rootScope.session.idleCount = 0;
 
-                $state.go('finished');
-            } else
-                $scope.respawnElement();
+        var hotspot = $(data.spot.el);
 
-        }
+        $scope.hotspotHit(hotspot);
 
-        // When object is hit, calculate new area
-        $(window).on('hit', function(ev, data){
-            // Reset idle timer
-            $rootScope.session.idleCount = 0;
+        $scope.checkWin();
 
-            $scope.getHotspot(data);
+        $scope.checkDuration();
+    });
 
-            $scope.updateScore();
-
-            $scope.updateScene();
-
-            $scope.checkWin();
-        });
-    }]);
+}]);

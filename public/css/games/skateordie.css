@@ -29,6 +29,10 @@
     height: 100px;
 }
 
+#hotspots > .invulnerable {
+    opacity: 0.5;
+}
+
 #hotspots > .rotate {
     -webkit-animation: spin 4s ease-out;
 }

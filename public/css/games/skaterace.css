@@ -7,12 +7,12 @@
 #hotspots > .player1,
 #hotspots > .player2 {
     width: 50%;
-    height: 80px;
+    height: 150px;
     position: absolute;
 
     text-align: center;
     vertical-align: middle;
-    line-height: 80px;
+    line-height: 150px;
 
     color: transparent;
     font-family: 'Open Sans', sans-serif;
@@ -25,7 +25,20 @@
 #hotspots > .player1 { left:   0; }
 #hotspots > .player2 { right:  0; }
 
-.locked { background: rgba(0, 0, 0, 0.5); }
+.player1[data-locked='2'],
+.player2[data-locked='2'] {
+    background: rgb(255, 82, 77);
+}
+
+.player1[data-locked='1'],
+.player2[data-locked='1'] {
+    background: rgb(255, 151, 34);
+}
+
+.player1[data-locked='0'],
+.player2[data-locked='0'] {
+    background: transparent;
+}
 
 
 /* ####################################################

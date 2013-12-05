@@ -84,29 +84,30 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         $rootScope.engine = {
             debug:                true,
             debugDetection:       false,
-
             socketEnabled:        true,
 
             detection: {
                 enabled:          true,
+                frameSkip:        0,
                 toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   225,
-                confidence:       15
+                whiteThreshold:   100,
+                confidence:       5
             },
 
             areaOfInterest: {
                 show:             false,
-                x:                85,
-                y:                35,
-                width:            485,
-                height:           420,
+                x:                90,
+                y:                40,
+                width:            495,
+                height:           405,
                 thickness:        2,
                 color:            '#16CFDC'
             },
 
-            frameCount:           0
+            frameCount:           0,
+            skippedFrames:        0
         };
 
         // FPS meter settings
@@ -114,7 +115,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             theme:   'transparent',
             heat:    1,
             graph:   1,
-            history: 25
+            history: 50
         });
 
 
@@ -209,15 +210,15 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             f1.add($rootScope.engine, 'debug');
             f1.add($rootScope.engine, 'debugDetection');
-
             f1.add($rootScope.engine, 'socketEnabled');
-
             f1.add($rootScope.engine, 'frameCount').listen();
+            f1.add($rootScope.engine, 'skippedFrames').listen();
 
 
             f2 = gui.addFolder('Detection');
 
             f2.add($rootScope.engine.detection, 'enabled');
+            f2.add($rootScope.engine.detection, 'frameSkip', 0, 60);
             f2.add($rootScope.engine.detection, 'toggleVisibility');
             f2.add($rootScope.engine.detection, 'mirrorHorizontal');
             f2.add($rootScope.engine.detection, 'mirrorVertical');
@@ -419,6 +420,16 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             if(!$rootScope.engine.detection.enabled) return;
 
+            // Frame skip if needed
+            if($rootScope.engine.detection.frameSkip > 0) {
+                if($rootScope.engine.skippedFrames >= $rootScope.engine.detection.frameSkip)
+                    $rootScope.engine.skippedFrames = 0;
+                else {
+                    $rootScope.engine.skippedFrames++;
+                    return;
+                }
+            }
+
             for (var h = 0; h < hotspots.length; h++) {
                 // Check if the hotspots location is within the canvas, else skip it
                 if(hotspots[h].x < 0) return;
@@ -427,7 +438,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 if((hotspots[h].x + hotspots[h].width)  >  $("#canvas").width()) return;
                 if((hotspots[h].y + hotspots[h].height) >  $("#canvas").height()) return;
 
-                var canvasData = context.getImageData(hotspots[h].x, hotspots[h].y, hotspots[h].width, hotspots[h].height);
+                var canvasData = context.getImageData(Math.round(hotspots[h].x), Math.round(hotspots[h].y), Math.round(hotspots[h].width), Math.round(hotspots[h].height));
                 var i = 0;
                 var white = 0;
                 var confidence = 0;
@@ -438,16 +449,23 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
                     if(white >= $rootScope.engine.detection.whiteThreshold) confidence++;
                     ++i;
-                }
 
-                // over a small limit, consider that a movement is detected
-                if (confidence > $rootScope.engine.detection.confidence) {
-                    data = {
-                        confidence: confidence,
-                        spot: hotspots[h]
-                    };
+                    // Debug if needed
+                    if($rootScope.engine.debugDetection)
+                        if($rootScope.engine.frameCount % 3 == 1 && confidence > 0)
+                            $rootScope.log('detection', 'Confidence: ' + confidence);
 
-                    $(data.spot.el).trigger('hit', data);
+                    // over a small limit, consider that a movement is detected
+                    if (confidence > $rootScope.engine.detection.confidence) {
+                        data = {
+                            confidence: confidence,
+                            spot: hotspots[h]
+                        };
+
+                        $(data.spot.el).trigger('hit', data);
+
+                        return;
+                    }
                 }
             }
         }

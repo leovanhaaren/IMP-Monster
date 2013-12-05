@@ -4,95 +4,108 @@
 // ########        Skaterace controller        ########
 // ####################################################
 
-    monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
-        $rootScope.log('game', 'Started ' + $rootScope.game.name);
+monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+    $rootScope.log('game', 'Started ' + $rootScope.game.name);
+    $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
+    $rootScope.log('game', 'Area limit: ' + $rootScope.game.conditions.area);
 
-        // Playfield divider, representing the score in this game in %
-        $scope.areaPercentage = 50;
 
-        // Set score limits
-        $scope.player1Limit = $rootScope.game.conditions.area;
-        $scope.player2Limit = 100 - $rootScope.game.conditions.area;
+    // ########     Positioning
+    // ########     -----------
 
-        // Update borders
-        $(".border1").css("width", $rootScope.game.conditions.area +'%');
-        $(".border2").css("width", $rootScope.game.conditions.area +'%');
+    // Playfield divider, representing the score in this game in %
+    $scope.areaPercentage = 50;
 
-        // Hotspot data, updated on every hit
-        $scope.hotspot = null;
-        $scope.player  = "";
-        $scope.score   = 0;
+    // Set score limits
+    $scope.player1Limit =       $rootScope.game.conditions.area;
+    $scope.player2Limit = 100 - $rootScope.game.conditions.area;
 
-        $scope.getHotspot = function(data) {
-            // Get specific hotspot
-            $scope.hotspot = $(data.spot.el);
+    // Update borders
+    $(".border1").css("width", $rootScope.game.conditions.area +'%');
+    $(".border2").css("width", $rootScope.game.conditions.area +'%');
 
-            // Get player who scored
-            $scope.player  = $(data.spot.el).attr('class').split(' ')[1];
 
-            // Get score from the hotspot
-            $scope.score   = parseInt($(data.spot.el).html());
+    // ########     Hits
+    // ########     ----
+
+    $scope.hotspotHit = function(hotspot) {
+        // Update score exponential according to session time
+        var score = Math.exp(hotspot.data("score") * $rootScope.session.durationCount / 25);
+
+        // Move the area divider by score %
+        if(hotspot.data("player") === "player1")
+            $scope.areaPercentage += score;
+
+        if(hotspot.data("player") === "player2")
+            $scope.areaPercentage -= score;
+
+        // Raise locked attr so we cant score again for 2 sec
+        hotspot.data("locked", 2);
+
+        // Update scene
+        $(".player1").css("width", $scope.areaPercentage +'%');
+        $(".player2").css("width", (100 - $scope.areaPercentage) +'%');
+
+        // Log game score
+        $rootScope.log('game', hotspot.data("player") + ' claimed ' + score +'% of playfield');
+    }
+
+
+    // ########     Conditions
+    // ########     ----------
+
+    $scope.checkWin = function(hotspot) {
+        // Check if we have a winner
+        if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
+            // Set message for end screen
+            $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.data("player") + " is de winnaar";
+
+            $state.go('finished');
         }
+    }
 
-        $scope.lockHotspot = function() {
-            //Check if object is locked, else lock it
-            if($scope.hotspot.hasClass('locked'))
-                return true;
-            else
-                $scope.hotspot.addClass('locked');
+    $scope.checkDuration = function() {
+        // Check if we have a winner
+        if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
+            // Set message for end screen
+            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
 
-            // Remove locked state after x seconds
-            var timer = setTimeout(function () {
-                $scope.hotspot.removeClass('locked');
-            }, 2000);
+            $state.go('finished');
         }
+    }
 
-        $scope.updateScore = function() {
-            // Update score exponential according to session time
-            $scope.score = Math.exp($scope.score * $rootScope.session.durationCount / 25);
 
-            // Move the area divider by score %
-            if($scope.player === "player1")
-                $scope.areaPercentage += $scope.score;
-            else
-                $scope.areaPercentage -= $scope.score;
+    // ########     Game events
+    // ########     -----------
 
-            // Log game score
-            $rootScope.log('game', $scope.player + ' claimed ' + $scope.score +'% of playfield');
-        }
+    $(window).on('tick', function(ev){
+        // Lower the hotspot lock by 1
+        $('#hotspots').children().each(function (i) {
+            var currentLock = $(this).data("locked");
 
-        $scope.updateScene = function() {
-            // Get rest percentage
-            var restPercentage = 100 - $scope.areaPercentage;
+            // Escape if lock is already 0
+            if(currentLock == 0) return;
 
-            // Update scene so we get correct area coverage
-            $(".player1").css("width", $scope.areaPercentage +'%');
-            $(".player2").css("width", restPercentage +'%');
-        }
-
-        $scope.checkWin = function() {
-            // Check if we have a winner
-            if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
-                // Set message for end screen
-                $rootScope.message = "Het spel is afgelopen<br/>" + $scope.player + " is de winnaar";
-
-                $state.go('finished');
-            }
-        }
-
-        // When object is hit, calculate new area
-        $(window).on('hit', function(ev, data){
-            // Reset idle timer
-            $rootScope.session.idleCount = 0;
-
-            $scope.getHotspot(data);
-
-            if($scope.lockHotspot()) return;
-
-            $scope.updateScore();
-
-            $scope.updateScene();
-
-            $scope.checkWin();
+            // Lower lock
+            $(this).data("locked", currentLock--);
         });
-    }]);
+    });
+
+
+    // When object is hit, calculate new area
+    $(window).on('hit', function(ev, data){
+        var hotspot = $(data.spot.el);
+
+        // Reset idle timer
+        $rootScope.session.idleCount = 0;
+
+        if(hotspot.data("locked") != 0) return;
+
+        $scope.hotspotHit(hotspot);
+
+        $scope.checkWin(hotspot);
+
+        $scope.checkDuration();
+    });
+
+}]);

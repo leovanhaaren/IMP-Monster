@@ -6,6 +6,8 @@
 
     monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
         $rootScope.log('game', 'Started ' + $rootScope.game.name);
+        $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
+        $rootScope.log('game', 'Score: ' + $rootScope.game.conditions.score);
 
         // Settings
         $scope.monster = $('.monster');
@@ -83,6 +85,7 @@
         $scope.changeMonsterState = function(powerup) {
             // Stop current animation
             $scope.monster.stop();
+            $scope.monster.addClass('invulnerable');
 
             // Animate monster
             $scope.monster.find("img").attr("src", 'svg/monster_' + powerup.data("type") + '.svg');
@@ -97,6 +100,8 @@
 
             // Init timer for state reset
             var timer = setTimeout(function () {
+                $scope.monster.removeClass('invulnerable');
+
                 // Let the monster roam again
                 $('.monster').find("img").attr("src", 'svg/monster_roaming.svg');
                 $scope.animateMonster();
@@ -113,7 +118,7 @@
 
         $scope.monsterHit = function(monster) {
             // If monster is not animating, return
-            if (!$scope.monster.is(':animated')) return;
+            if ($scope.monster.hasClass('invulnerable')) return;
 
             $scope.gameover = true;
 
@@ -156,6 +161,16 @@
             }
         }
 
+        $scope.checkDuration = function() {
+            // Check if we have a winner
+            if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
+                // Set message for end screen
+                $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+
+                $state.go('finished');
+            }
+        }
+
 
         // ########     Game events
         // ########     -----------
@@ -170,9 +185,11 @@
             $rootScope.session.score++;
 
             $scope.checkWin();
+
+            $scope.checkDuration();
         });
 
-        // When object is hit, calculate new area
+        // When object is hit, trigger monster or powerup
         $(window).on('hit', function(ev, data){
             var hotspot = $(data.spot.el);
 
