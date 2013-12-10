@@ -5,8 +5,8 @@
 // ####################################################
 
 monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
-    $rootScope.log('game', 'Started ' + $rootScope.game.name);
-    $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
+    $rootScope.log('game', 'Started '     + $rootScope.game.name);
+    $rootScope.log('game', 'Time: '       + $rootScope.game.conditions.time);
     $rootScope.log('game', 'Area limit: ' + $rootScope.game.conditions.area);
 
 
@@ -36,11 +36,11 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
         if(hotspot.data("player") === "player1")
             $scope.areaPercentage += score;
 
-        if(hotspot.data("player") === "player2")
+        if(hotspot.attr("player") === "player2")
             $scope.areaPercentage -= score;
 
         // Raise locked attr so we cant score again for 2 sec
-        hotspot.data("locked", 2);
+        hotspot.attr("data-locked", 2);
 
         // Update scene
         $(".player1").css("width", $scope.areaPercentage +'%');
@@ -81,14 +81,16 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     $(window).on('tick', function(ev){
         // Lower the hotspot lock by 1
         $('#hotspots').children().each(function (i) {
-            var currentLock = $(this).data("locked");
+            var currentLock = $(this).data('locked');
 
             // Escape if lock is already 0
             if(currentLock == 0) return;
 
             // Lower lock
-            $(this).data("locked", currentLock--);
+            $(this).attr("data-locked", currentLock--);
         });
+
+        $scope.checkDuration();
     });
 
 
@@ -99,13 +101,10 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
         // Reset idle timer
         $rootScope.session.idleCount = 0;
 
-        if(hotspot.data("locked") != 0) return;
+        if(hotspot.data("locked") == 0)
+            $scope.hotspotHit(hotspot);
 
-        $scope.hotspotHit(hotspot);
-
-        $scope.checkWin(hotspot);
-
-        $scope.checkDuration();
+        //$scope.checkWin(hotspot);
     });
 
 }]);

@@ -138,7 +138,7 @@
 
         $scope.powerupHit = function(powerup) {
             // Raise score
-            $rootScope.session.score += powerup.data("score");
+            $rootScope.session.score += parseInt(powerup.data("score"));
 
             // Remove powerup from scene
             powerup.remove();

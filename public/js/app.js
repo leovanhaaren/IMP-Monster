@@ -44,7 +44,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             })
             .state('skaterace', {
                 url: "/skaterace",
-                templateUrl: "games/skaterace_single.html",
+                templateUrl: "games/skaterace_dual.html",
                 controller: "skateraceCtrl"
             })
             .state('skaterace_dual', {
@@ -92,8 +92,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   100,
-                confidence:       5
+                whiteThreshold:   25,
+                confidence:       3
             },
 
             areaOfInterest: {

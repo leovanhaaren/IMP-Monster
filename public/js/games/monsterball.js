@@ -55,6 +55,10 @@ monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', func
     // ########     Game events
     // ########     -----------
 
+    $(window).on('tick', function(ev){
+        $scope.checkDuration();
+    });
+
     $(window).on('hit', function(ev, data){
         // Reset idle timer
         $rootScope.session.idleCount = 0;
@@ -64,8 +68,6 @@ monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', func
         $scope.hotspotHit(hotspot);
 
         $scope.checkWin();
-
-        $scope.checkDuration();
     });
 
 }]);
