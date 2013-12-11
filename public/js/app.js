@@ -44,7 +44,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             })
             .state('skaterace', {
                 url: "/skaterace",
-                templateUrl: "games/skaterace_dual.html",
+                templateUrl: "games/skaterace_single.html",
                 controller: "skateraceCtrl"
             })
             .state('skaterace_dual', {
@@ -68,7 +68,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 // ########          Engine bootstrap          ########
 // ####################################################
 
-    monsterApp.run(['$rootScope', '$state', '$stateParams', function ($rootScope, $state, $stateParams) {
+    monsterApp.run(['$rootScope', '$state', '$stateParams', '$timeout', '$http', function ($rootScope, $state, $stateParams, $timeout, $http) {
 
         // State hack
         // So we know what our engine is currently doing
@@ -92,8 +92,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   25,
-                confidence:       3
+                whiteThreshold:   75,
+                confidence:       10
             },
 
             areaOfInterest: {
@@ -309,6 +309,9 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             // Update font size
             $('h1').css({'font-size': $(this).height() / 12 +"px"});
+
+            // Update promo
+            $('#promo').css({'width': $(this).height() / 2 +"px"});
         }
         $(window).resize(resize);
         $(window).ready(function () {
@@ -457,17 +460,66 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
                     // over a small limit, consider that a movement is detected
                     if (confidence > $rootScope.engine.detection.confidence) {
-                        data = {
-                            confidence: confidence,
-                            spot: hotspots[h]
-                        };
-
-                        $(data.spot.el).trigger('hit', data);
+                        $(hotspots[h].el).trigger('hit', hotspots[h].el);
 
                         return;
                     }
                 }
             }
         }
+
+
+        // ####################################################
+        // ########         Socket.io settings         ########
+        // ####################################################
+
+        // Init socket events
+        // Listen for game sessions from server, so we can start the game when needed
+        $rootScope.socket.on('session:start', function (session) {
+            if(!$rootScope.engine.socketEnabled) return;
+
+            // Only allow start of new games if the game isnt already running one
+            if(!$state.includes("idle")) return;
+
+            // Prepare session
+            $rootScope.session.id             = session.id;
+            $rootScope.session.player         = session.player;
+            $rootScope.session.state          = session.state;
+
+            // Get game data from server
+            $http({method: 'GET', url: 'http://teammonster.nl/games/' + session.gameID}).
+                success(function(game) {
+                    $rootScope.game.name       = game.prototype;
+                    $rootScope.game.countdown  = game.countdown;
+                    $rootScope.game.cooldown   = game.cooldown;
+                    $rootScope.game.reset      = game.reset;
+                    $rootScope.game.remote     = game.remote;
+                    $rootScope.game.conditions = game.conditions;
+
+                    $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
+
+                    if(game.countdown > 0)
+                        $state.go('countdown');
+                    else
+                        $state.go('start');
+                }).
+                error(function() {
+                    $rootScope.log('game', 'Error getting game data for session ' + session.id);
+
+                    $state.go('idle');
+                });
+        });
+
+        // Listen for game updates from server, in case game needs to be stopped
+        $rootScope.socket.on('session:cancel', function (session) {
+            if(!$rootScope.engine.socketEnabled) return;
+
+            // Cancel event when not running a game
+            if($state.includes("countdown") || $state.includes("finished")) return;
+
+            $rootScope.log('socket.io', 'Stopped game session ' + session.id);
+
+            $state.go('finished');
+        });
 
     }]);

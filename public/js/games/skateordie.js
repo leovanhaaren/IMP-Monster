@@ -6,8 +6,8 @@
 
     monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
         $rootScope.log('game', 'Started ' + $rootScope.game.name);
-        $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
-        $rootScope.log('game', 'Score: ' + $rootScope.game.conditions.score);
+        $rootScope.log('game', 'Time: '   + $rootScope.game.conditions.time);
+        $rootScope.log('game', 'Score: '  + $rootScope.game.conditions.score);
 
         // Settings
         $scope.monster = $('.monster');
@@ -82,41 +82,8 @@
         // ########     Hits
         // ########     ----
 
-        $scope.changeMonsterState = function(powerup) {
-            // Stop current animation
-            $scope.monster.stop();
-            $scope.monster.addClass('invulnerable');
-
-            // Animate monster
-            $scope.monster.find("img").attr("src", 'svg/monster_' + powerup.data("type") + '.svg');
-
-            // End function if we have a monster
-            if(powerup.data("type") === "gameover")
-                return;
-
-            // Spin monster
-            if(powerup.data("type") === "shock")
-                $scope.monster.addClass('rotate');
-
-            // Init timer for state reset
-            var timer = setTimeout(function () {
-                $scope.monster.removeClass('invulnerable');
-
-                // Let the monster roam again
-                $('.monster').find("img").attr("src", 'svg/monster_roaming.svg');
-                $scope.animateMonster();
-
-                // Remove spin
-                $('.monster').removeClass('rotate');
-
-                var respawn = setTimeout(function () {
-                    $scope.spawnPowerup(powerup);
-                }, (powerup.data("respawn") - powerup.data("duration") * 1000));
-
-            }, powerup.data("duration") * 1000);
-        }
-
         $scope.monsterHit = function(monster) {
+            console.log("monsterhit");
             // If monster is not animating, return
             if ($scope.monster.hasClass('invulnerable')) return;
 
@@ -125,7 +92,8 @@
             $('#bg').addClass('gameover');
 
             // Update monster state
-            $scope.changeMonsterState(monster);
+            $scope.monster.stop();
+            $scope.monster.find("img").attr("src", 'svg/monster_gameover.svg');
 
             var timer = setTimeout(function () {
                 monster.remove();
@@ -137,14 +105,40 @@
         }
 
         $scope.powerupHit = function(powerup) {
+            console.log("poweruphit");
+            // Stop current animation
+            $scope.monster.stop();
+            $scope.monster.addClass('invulnerable');
+
             // Raise score
-            $rootScope.session.score += parseInt(powerup.data("score"));
+            $rootScope.session.score += parseInt(powerup.attr("data-score"));
 
             // Remove powerup from scene
             powerup.remove();
 
-            // Update monster state
-            $scope.changeMonsterState(powerup);
+            // Animate monster
+            $scope.monster.find("img").attr("src", 'svg/monster_' + powerup.attr("data-type") + '.svg');
+
+            // Spin monster
+            if(powerup.attr("data-type") === "shock")
+                $scope.monster.addClass('rotate');
+
+            // Respawn item
+            var timer = setTimeout(function () {
+                $scope.monster.removeClass('invulnerable');
+
+                // Let the monster roam again
+                $scope.monster.find("img").attr("src", 'svg/monster_roaming.svg');
+                $scope.animateMonster();
+
+                // Remove spin
+                $scope.monster.removeClass('rotate');
+
+                var respawn = setTimeout(function () {
+                    $scope.spawnPowerup(powerup);
+                }, (powerup.attr("data-respawn") - powerup.attr("data-duration") * 1000));
+
+            }, powerup.data("duration") * 1000);
         }
 
 
@@ -161,22 +155,11 @@
             }
         }
 
-        $scope.checkDuration = function() {
-            // Check if we have a winner
-            if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
-                // Set message for end screen
-                $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
-
-                $state.go('finished');
-            }
-        }
-
 
         // ########     Game events
         // ########     -----------
 
         $(window).on('tick', function(ev){
-            // Reset idle timer
             $rootScope.session.idleCount = 0;
 
             // Return if game is over
@@ -185,27 +168,25 @@
             $rootScope.session.score++;
 
             $scope.checkWin();
-
-            $scope.checkDuration();
         });
 
         // When object is hit, trigger monster or powerup
-        $(window).on('hit', function(ev, data){
-            var hotspot = $(data.spot.el);
+        $(window).on('hit', function(ev, hotspot){
+            hotspot = $(hotspot);
 
-            // Return if game is over
-            if($scope.gameover) return;
+            console.log(hotspot.attr("data-type"));
 
-            // Check for monster hit
-            if(hotspot.data("type") === "gameover")
-                $scope.monsterHit(hotspot);
-
-            // Check for powerups
-            if(hotspot.data("type") === "shock")
-                $scope.powerupHit(hotspot);
-
-            if(hotspot.data("type") === "silence")
-                $scope.powerupHit(hotspot);
+            if(!$scope.gameover)
+                switch(hotspot.attr("data-type")) {
+                    case 'monster':
+                        $scope.monsterHit(hotspot);
+                    case 'shock':
+                        $scope.powerupHit(hotspot);
+                    case 'silence':
+                        $scope.powerupHit(hotspot);
+                    default:
+                        return;
+                }
         });
 
 

@@ -29,14 +29,16 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     // ########     ----
 
     $scope.hotspotHit = function(hotspot) {
+        if(hotspot.attr("data-locked") > 0) return;
+
         // Update score exponential according to session time
-        var score = Math.exp(hotspot.data("score") * $rootScope.session.durationCount / 25);
+        var score = Math.exp(hotspot.attr("data-score") * $rootScope.session.durationCount / 25);
 
         // Move the area divider by score %
-        if(hotspot.data("player") === "player1")
+        if(hotspot.attr("data-player") === "player1")
             $scope.areaPercentage += score;
 
-        if(hotspot.attr("player") === "player2")
+        if(hotspot.attr("data-player") === "player2")
             $scope.areaPercentage -= score;
 
         // Raise locked attr so we cant score again for 2 sec
@@ -47,7 +49,7 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
         $(".player2").css("width", (100 - $scope.areaPercentage) +'%');
 
         // Log game score
-        $rootScope.log('game', hotspot.data("player") + ' claimed ' + score +'% of playfield');
+        $rootScope.log('game', hotspot.attr("data-player") + ' claimed ' + score +'% of playfield');
     }
 
 
@@ -55,20 +57,9 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     // ########     ----------
 
     $scope.checkWin = function(hotspot) {
-        // Check if we have a winner
         if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
             // Set message for end screen
-            $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.data("player") + " is de winnaar";
-
-            $state.go('finished');
-        }
-    }
-
-    $scope.checkDuration = function() {
-        // Check if we have a winner
-        if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
-            // Set message for end screen
-            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+            $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.attr("data-player") + " is de winnaar";
 
             $state.go('finished');
         }
@@ -81,28 +72,23 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     $(window).on('tick', function(ev){
         // Lower the hotspot lock by 1
         $('#hotspots').children().each(function (i) {
-            var currentLock = $(this).data('locked');
+            var currentLock = $(this).attr('data-locked');
 
             // Escape if lock is already 0
-            if(currentLock == 0) return;
-
-            // Lower lock
-            $(this).attr("data-locked", currentLock--);
+            if(currentLock != 0)
+                $(this).attr("data-locked", currentLock--);
         });
-
-        $scope.checkDuration();
     });
 
 
     // When object is hit, calculate new area
-    $(window).on('hit', function(ev, data){
-        var hotspot = $(data.spot.el);
+    $(window).on('hit', function(ev, hotspot){
+        hotspot = $(hotspot);
 
         // Reset idle timer
         $rootScope.session.idleCount = 0;
 
-        if(hotspot.data("locked") == 0)
-            $scope.hotspotHit(hotspot);
+        $scope.hotspotHit(hotspot);
 
         //$scope.checkWin(hotspot);
     });

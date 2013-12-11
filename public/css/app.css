@@ -45,12 +45,31 @@ video { display: none; }
     display:  table;
 }
 
+.enlarge {
+    -webkit-transform: scale(10.0);
+    -webkit-transform-origin: 50% 50%;
+    -moz-transform: scale(10.0);
+    -moz-transform-origin: 50% 50%;
+    -o-transform: scale(10.0);
+    -o-transform-origin: 50% 50%;
+    -ms-transform: scale(10.0);
+    -ms-transform-origin: 50% 50%;
+    transform: scale(10.0);
+    transform-origin: 50% 50%;
+}
+
 h1 {
     display:        table-cell;
     vertical-align: middle;
     text-align:     center;
 
     color:          #FFF;
+}
+
+#promo {
+    position: absolute;
+    bottom: 0;
+    right: 0;
 }
 
 #input {

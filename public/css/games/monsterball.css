@@ -9,11 +9,11 @@
 .ball3,
 .game-ball {
     position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     left: 50%;
     top: 80%;
-    margin: -50px 0 0 -50px;
+    margin: -75px 0 0 -75px;
 
     color: #FFF;
     font-family: 'Open Sans', sans-serif;
@@ -34,7 +34,10 @@
 }
 
 .ball2 {
+    width: 125px;
+    height: 125px;
     top: 50%;
+    margin: -62px 0 0 -62px;
 
     background: green;
 
@@ -42,7 +45,10 @@
 }
 
 .ball3 {
+    width: 100px;
+    height: 100px;
     top: 20%;
+    margin: -50px 0 0 -50px;
 
     background: red;
 
