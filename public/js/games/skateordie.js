@@ -83,17 +83,23 @@
         // ########     ----
 
         $scope.monsterHit = function(monster) {
-            console.log("monsterhit");
+            $rootScope.log('game', 'Monster was hit');
+
             // If monster is not animating, return
             if ($scope.monster.hasClass('invulnerable')) return;
 
+            // Update monster state
+            $scope.stopMonster();
+            $scope.monster.find("img").attr("src", 'svg/monster_gameover.svg');
+
             $scope.gameover = true;
 
+            // Animate scene background
             $('#bg').addClass('gameover');
 
-            // Update monster state
-            $scope.monster.stop();
-            $scope.monster.find("img").attr("src", 'svg/monster_gameover.svg');
+            // Play gameover sound
+            var instance = createjs.Sound.play("gameover");
+            instance.volume = 1;
 
             var timer = setTimeout(function () {
                 monster.remove();
@@ -101,44 +107,85 @@
                 $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
 
                 $state.go('finished');
-            }, monster.data("duration") * 1000);
+            }, 5000);
         }
 
-        $scope.powerupHit = function(powerup) {
-            console.log("poweruphit");
+        $scope.stopMonster = function() {
+            $rootScope.log('game', 'Stopping monster');
+
             // Stop current animation
             $scope.monster.stop();
             $scope.monster.addClass('invulnerable');
+        }
 
-            // Raise score
-            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+        $scope.restoreMonster = function(powerup) {
+            $rootScope.log('game', 'Restoring monster');
 
-            // Remove powerup from scene
-            powerup.remove();
-
-            // Animate monster
-            $scope.monster.find("img").attr("src", 'svg/monster_' + powerup.attr("data-type") + '.svg');
-
-            // Spin monster
-            if(powerup.attr("data-type") === "shock")
-                $scope.monster.addClass('rotate');
-
-            // Respawn item
             var timer = setTimeout(function () {
+                if($scope.gameover) return;
+
                 $scope.monster.removeClass('invulnerable');
+                $scope.monster.removeClass('rotate');
 
                 // Let the monster roam again
                 $scope.monster.find("img").attr("src", 'svg/monster_roaming.svg');
                 $scope.animateMonster();
 
-                // Remove spin
-                $scope.monster.removeClass('rotate');
-
+                // Respawn powerup
                 var respawn = setTimeout(function () {
                     $scope.spawnPowerup(powerup);
                 }, (powerup.attr("data-respawn") - powerup.attr("data-duration") * 1000));
 
             }, powerup.data("duration") * 1000);
+        }
+
+        $scope.shockHit = function(powerup) {
+            $rootScope.log('game', 'Hit shock powerup');
+
+            // Check for NaN bug
+            if(isNaN(powerup.attr("data-score"))){
+                $rootScope.log('game', '*** Score was NaN ***');
+                return;
+            }
+
+            // Raise score
+            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+
+            $scope.stopMonster();
+
+            // Animate monster
+            $scope.monster.find("img").attr("src", 'svg/monster_shock.svg');
+            $scope.monster.addClass('rotate');
+
+            // Restore monster after x seconds
+            $scope.restoreMonster(powerup);
+
+            // Remove powerup from scene
+            powerup.remove();
+        }
+
+        $scope.silenceHit = function(powerup) {
+            $rootScope.log('game', 'Hit silence powerup');
+
+            // Check for NaN bug
+            if(isNaN(powerup.attr("data-score"))){
+                $rootScope.log('game', '*** Score was NaN ***');
+                return;
+            }
+
+            // Raise score
+            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+
+            $scope.stopMonster();
+
+            // Animate monster
+            $scope.monster.find("img").attr("src", 'svg/monster_silence.svg');
+
+            // Restore monster after x seconds
+            $scope.restoreMonster(powerup);
+
+            // Remove powerup from scene
+            powerup.remove();
         }
 
 
@@ -150,6 +197,10 @@
             if($rootScope.session.score >= $rootScope.game.conditions.score) {
                 // Set message for end screen
                 $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+
+                // Play win sound
+                var instance = createjs.Sound.play("win");
+                instance.volume = 1;
 
                 $state.go('finished');
             }
@@ -163,9 +214,8 @@
             $rootScope.session.idleCount = 0;
 
             // Return if game is over
-            if($scope.gameover) return;
-
-            $rootScope.session.score++;
+            if(!$scope.gameover)
+                $rootScope.session.score++;
 
             $scope.checkWin();
         });
@@ -174,16 +224,14 @@
         $(window).on('hit', function(ev, hotspot){
             hotspot = $(hotspot);
 
-            console.log(hotspot.attr("data-type"));
-
             if(!$scope.gameover)
                 switch(hotspot.attr("data-type")) {
                     case 'monster':
                         $scope.monsterHit(hotspot);
                     case 'shock':
-                        $scope.powerupHit(hotspot);
+                        $scope.shockHit(hotspot);
                     case 'silence':
-                        $scope.powerupHit(hotspot);
+                        $scope.silenceHit(hotspot);
                     default:
                         return;
                 }
@@ -199,7 +247,7 @@
             $scope.newPowerupPosition(".powerup[data-type='silence'");
 
             // Start monster
-            $rootScope.log('monster', 'Roaming');
+            $rootScope.log('game', 'Monster roaming');
             $scope.animateMonster();
         }
         $scope.init();

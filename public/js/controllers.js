@@ -53,22 +53,38 @@
         $rootScope.session.countdownCount = $rootScope.game.countdown;
         $rootScope.message = $rootScope.session.countdownCount.toString();
 
+        // Play sound on each countdown iteration
+        var instance = createjs.Sound.play("countdown");
+        instance.volume = 1;
+
+        $rootScope.log('countdown', $rootScope.session.countdownCount);
+
         $scope.timer = function() {
             $rootScope.game.countdownTimer = $timeout(function() {
-                $rootScope.message = $rootScope.session.countdownCount.toString();
-
-                if($rootScope.session.countdownCount < 1) {
+                if($rootScope.session.countdownCount <= 1) {
                     $rootScope.log('game', 'Moving to ' + $rootScope.game.name);
 
                     $rootScope.message = false;
                     $('h1').removeClass('enlarge');
 
+                    // Play start sound
+                    var instance = createjs.Sound.play("start");
+                    instance.volume = 1;
+
+                    $rootScope.log('countdown', $rootScope.session.countdownCount);
+
                     $timeout.cancel($rootScope.game.countdownTimer);
                     $state.go('start');
                 } else {
-                    $rootScope.log('countdown', $rootScope.session.countdownCount);
+                    // Play sound on each countdown iteration
+                    var instance = createjs.Sound.play("countdown");
+                    instance.volume = 1;
 
                     $rootScope.session.countdownCount--;
+                    $rootScope.message = $rootScope.session.countdownCount.toString();
+
+                    $rootScope.log('countdown', $rootScope.session.countdownCount);
+
                     $scope.timer();
                 }
             }, 1000);

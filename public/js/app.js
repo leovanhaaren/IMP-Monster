@@ -522,4 +522,15 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             $state.go('finished');
         });
 
+
+        // ####################################################
+        // ########           Sound settings           ########
+        // ####################################################
+
+        // Preload sounds
+        createjs.Sound.registerSound("sounds/countdown.mp3", "countdown");
+        createjs.Sound.registerSound("sounds/start.mp3",     "start");
+        createjs.Sound.registerSound("sounds/win.mp3",       "win");
+        createjs.Sound.registerSound("sounds/gameover.mp3",  "gameover");
+
     }]);
