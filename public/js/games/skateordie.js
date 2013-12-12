@@ -151,6 +151,10 @@
             // Raise score
             $rootScope.session.score += parseInt(powerup.attr("data-score"));
 
+            // Play shock sound
+            var instance = createjs.Sound.play("sounds/shock.mp3");
+            instance.volume = 1;
+
             $scope.stopMonster();
 
             // Animate monster
@@ -175,6 +179,10 @@
 
             // Raise score
             $rootScope.session.score += parseInt(powerup.attr("data-score"));
+
+            // Play silence sound
+            var instance = createjs.Sound.play("sounds/silence.mp3");
+            instance.volume = 1;
 
             $scope.stopMonster();
 
