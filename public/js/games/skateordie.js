@@ -78,6 +78,14 @@
             $scope.newPowerupPosition(powerup);
         }
 
+        $scope.growMonster = function() {
+            var width  = $scope.monster.width();
+            var height = $scope.monster.height();
+
+            $scope.monster.css({'width':  (width  + (width  / 200)) +"px"});
+            $scope.monster.css({'height': (height + (height / 200)) +"px"});
+        }
+
 
         // ########     Hits
         // ########     ----
@@ -225,6 +233,8 @@
             if(!$scope.gameover)
                 $rootScope.session.score++;
 
+            $scope.growMonster();
+
             $scope.checkWin();
         });
 
@@ -236,12 +246,16 @@
                 switch(hotspot.attr("data-type")) {
                     case 'monster':
                         $scope.monsterHit(hotspot);
+                        break;
                     case 'shock':
                         $scope.shockHit(hotspot);
+                        break;
                     case 'silence':
                         $scope.silenceHit(hotspot);
+                        break;
                     default:
                         return;
+                        break;
                 }
         });
 
