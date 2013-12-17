@@ -22,23 +22,9 @@
 
 #hotspots > .top     { top:    0; }
 #hotspots > .bottom  { bottom: 0; }
+#hotspots > .middle  { top:    50%; margin-top: -75px; }
 #hotspots > .player1 { left:   0; }
 #hotspots > .player2 { right:  0; }
-
-.player1[data-locked='2'],
-.player2[data-locked='2'] {
-    background: rgb(255, 82, 77);
-}
-
-.player1[data-locked='1'],
-.player2[data-locked='1'] {
-    background: rgb(255, 151, 34);
-}
-
-.player1[data-locked='0'],
-.player2[data-locked='0'] {
-    background: transparent;
-}
 
 
 /* ####################################################

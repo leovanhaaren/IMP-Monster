@@ -9,6 +9,10 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     $rootScope.log('game', 'Time: '       + $rootScope.game.conditions.time);
     $rootScope.log('game', 'Area limit: ' + $rootScope.game.conditions.area);
 
+    // Locking
+    $scope.player1lock = 0;
+    $scope.player2lock = 0;
+
 
     // ########     Positioning
     // ########     -----------
@@ -28,9 +32,25 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     // ########     Hits
     // ########     ----
 
-    $scope.hotspotHit = function(hotspot) {
-        if(hotspot.attr("data-locked") > 0) return;
+    $scope.player1Score = function(hotspot) {
+        if($scope.player1lock > 0)
+            return;
 
+        $scope.score(hotspot);
+
+        $scope.player1lock = 2;
+    }
+
+    $scope.player2Score = function(hotspot) {
+        if($scope.player2lock > 0)
+            return;
+
+        $scope.score(hotspot);
+
+        $scope.player2lock = 2;
+    }
+
+    $scope.score = function(hotspot) {
         // Update score exponential according to session time
         var score = Math.exp(hotspot.attr("data-score") * $rootScope.session.durationCount / 25);
 
@@ -40,9 +60,6 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
 
         if(hotspot.attr("data-player") === "player2")
             $scope.areaPercentage -= score;
-
-        // Raise locked attr so we cant score again for 2 sec
-        hotspot.attr("data-locked", 2);
 
         // Update scene
         $(".player1").css("width", $scope.areaPercentage +'%');
@@ -61,6 +78,10 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
             // Set message for end screen
             $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.attr("data-player") + " is de winnaar";
 
+            // Play win sound
+            var instance = createjs.Sound.play("win");
+            instance.volume = 1;
+
             $state.go('finished');
         }
     }
@@ -71,13 +92,11 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
 
     $(window).on('tick', function(ev){
         // Lower the hotspot lock by 1
-        $('#hotspots').children().each(function (i) {
-            var currentLock = $(this).attr('data-locked');
+        if($scope.player1lock > 0)
+            $scope.player1lock--;
 
-            // Escape if lock is already 0
-            if(currentLock != 0)
-                $(this).attr("data-locked", currentLock--);
-        });
+        if($scope.player2lock > 0)
+            $scope.player2lock--;
     });
 
 
@@ -88,9 +107,13 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
         // Reset idle timer
         $rootScope.session.idleCount = 0;
 
-        $scope.hotspotHit(hotspot);
+        if(hotspot.attr("data-player") === "player1")
+            $scope.player1Score(hotspot);
 
-        //$scope.checkWin(hotspot);
+        if(hotspot.attr("data-player") === "player2")
+            $scope.player2Score(hotspot);
+
+        $scope.checkWin(hotspot);
     });
 
 }]);

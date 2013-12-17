@@ -129,6 +129,8 @@
         };
         $scope.timer();
 
+        $('#debug').show();
+
         // Move to game
         $state.go($rootScope.game.name);
     }]);
@@ -148,6 +150,7 @@
 
         // Remove event handler
         $(window).off('tick');
+        $('#debug').hide();
 
         // Update message if empty
         if($rootScope.message == "")

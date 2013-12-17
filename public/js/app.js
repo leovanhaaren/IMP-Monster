@@ -44,12 +44,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             })
             .state('skaterace', {
                 url: "/skaterace",
-                templateUrl: "games/skaterace_single.html",
-                controller: "skateraceCtrl"
-            })
-            .state('skaterace_dual', {
-                url: "/skaterace_dual",
-                templateUrl: "games/skaterace_dual.html",
+                templateUrl: "games/skaterace_middle.html",
                 controller: "skateraceCtrl"
             })
             .state('skateordie', {
@@ -92,16 +87,17 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   75,
-                confidence:       10
+                whiteThreshold:   200,
+                confidence:       10,
+                debug:            true
             },
 
             areaOfInterest: {
                 show:             false,
-                x:                90,
-                y:                40,
-                width:            495,
-                height:           405,
+                x:                160,
+                y:                70,
+                width:            360,
+                height:           320,
                 thickness:        2,
                 color:            '#16CFDC'
             },
@@ -110,13 +106,31 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             skippedFrames:        0
         };
 
+        /*
+         show:             false,
+         x:                160,
+         y:                70,
+         width:            360,
+         height:           320,
+         thickness:        2,
+         color:            '#16CFDC'
+
+         show:             false,
+         x:                90,
+         y:                40,
+         width:            495,
+         height:           405,
+         thickness:        2,
+         color:            '#16CFDC'
+         */
+
         // FPS meter settings
-        $rootScope.meter = new FPSMeter({
+        /*$rootScope.meter = new FPSMeter({
             theme:   'transparent',
             heat:    1,
             graph:   1,
             history: 50
-        });
+        });*/
 
 
         // ####################################################
@@ -163,13 +177,15 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // ########            DOM settings            ########
         // ####################################################
 
-        var content  = $('#content');
-        var video    = $('#webcam')[0];
-        var canvases = $('canvas');
+        var content      = $('#content');
+        var video        = $('#webcam')[0];
+        var canvases     = $('canvas');
 
-        var canvas   = $("#canvas")[0];
+        var canvas       = $("#canvas")[0];
+        var debug        = $("#debug")[0];
 
-        var context  = canvas.getContext('2d');
+        var context      = canvas.getContext('2d');
+        var debugContext = debug.getContext('2d');
 
 
         // ####################################################
@@ -218,12 +234,13 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             f2 = gui.addFolder('Detection');
 
             f2.add($rootScope.engine.detection, 'enabled');
-            f2.add($rootScope.engine.detection, 'frameSkip', 0, 60);
+            f2.add($rootScope.engine.detection, 'frameSkip',      0, 60);
             f2.add($rootScope.engine.detection, 'toggleVisibility');
             f2.add($rootScope.engine.detection, 'mirrorHorizontal');
             f2.add($rootScope.engine.detection, 'mirrorVertical');
             f2.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
             f2.add($rootScope.engine.detection, 'confidence',     1, 100);
+            f2.add($rootScope.engine.detection, 'debug');
 
 
             f3 = gui.addFolder('Input');
@@ -360,7 +377,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             // FPSmeter
             // Give it a tick to update fps
-            $rootScope.meter.tick();
+            //$rootScope.meter.tick();
         }
 
         // Draw function which gets called each iteration
@@ -418,7 +435,6 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Checks a portion of the canvas, based on the objects dimensions
         // Will trigger a hit event when player hits a object based on threshold
         function checkHotspots() {
-            var data;
             var hotspots = $rootScope.hotspots;
 
             if(!$rootScope.engine.detection.enabled) return;
@@ -442,8 +458,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 if((hotspots[h].y + hotspots[h].height) >  $("#canvas").height()) return;
 
                 var canvasData = context.getImageData(Math.round(hotspots[h].x), Math.round(hotspots[h].y), Math.round(hotspots[h].width), Math.round(hotspots[h].height));
-                var i = 0;
-                var white = 0;
+                var i          = 0;
+                var white      = 0;
                 var confidence = 0;
 
                 // make an average between the color channel
@@ -462,6 +478,13 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                     if (confidence > $rootScope.engine.detection.confidence) {
                         $(hotspots[h].el).trigger('hit', hotspots[h].el);
 
+                        if($rootScope.engine.detection.debug) {
+                            debugContext.lineWidth   = 1;
+                            debugContext.strokeStyle = "#FFFFFF";
+
+                            debugContext.clearRect(0, 0, debug.width, debug.height);
+                            debugContext.strokeRect(Math.round(hotspots[h].x), Math.round(hotspots[h].y), Math.round(hotspots[h].width), Math.round(hotspots[h].height));
+                        }
                         return;
                     }
                 }

@@ -27,6 +27,7 @@ body {
 
 video { display: none; }
 
+#debug,
 #content {
     position: absolute;
     left:     0;

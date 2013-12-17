@@ -4,7 +4,7 @@
 // ########        Skaterace controller        ########
 // ####################################################
 
-    monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+    monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
         $rootScope.log('game', 'Started ' + $rootScope.game.name);
         $rootScope.log('game', 'Time: '   + $rootScope.game.conditions.time);
         $rootScope.log('game', 'Score: '  + $rootScope.game.conditions.score);
@@ -12,7 +12,10 @@
         // Settings
         $scope.monster = $('.monster');
 
-        $scope.gameover = false;
+        $scope.invulnerable = false;
+        $scope.gameover     = false;
+
+        $scope.timer;
 
 
         // ########     Positioning
@@ -72,18 +75,20 @@
 
         $scope.spawnPowerup = function(powerup) {
             // Create element
-            powerup = $('#hotspots').prepend(powerup.get(0));
+            $('#hotspots').prepend(powerup.get(0));
+
+            var type = powerup.attr("data-type");
 
             // Set position
-            $scope.newPowerupPosition(powerup);
+            $scope.newPowerupPosition(".powerup[data-type='" + type + "'");
         }
 
         $scope.growMonster = function() {
             var width  = $scope.monster.width();
             var height = $scope.monster.height();
 
-            $scope.monster.css({'width':  (width  + (width  / 200)) +"px"});
-            $scope.monster.css({'height': (height + (height / 200)) +"px"});
+            $scope.monster.css({'width':  (width  + (width  / 150)) +"px"});
+            $scope.monster.css({'height': (height + (height / 150)) +"px"});
         }
 
 
@@ -91,10 +96,9 @@
         // ########     ----
 
         $scope.monsterHit = function(monster) {
-            $rootScope.log('game', 'Monster was hit');
+            if ($scope.invulnerable) return;
 
-            // If monster is not animating, return
-            if ($scope.monster.hasClass('invulnerable')) return;
+            $rootScope.log('game', 'Monster was hit');
 
             // Update monster state
             $scope.stopMonster();
@@ -123,26 +127,24 @@
 
             // Stop current animation
             $scope.monster.stop();
-            $scope.monster.addClass('invulnerable');
+            $scope.invulnerable = true;
         }
 
         $scope.restoreMonster = function(powerup) {
             $rootScope.log('game', 'Restoring monster');
 
-            var timer = setTimeout(function () {
+            $timeout.cancel($scope.timer);
+
+            $scope.timer = $timeout(function() {
                 if($scope.gameover) return;
 
-                $scope.monster.removeClass('invulnerable');
                 $scope.monster.removeClass('rotate');
 
                 // Let the monster roam again
                 $scope.monster.find("img").attr("src", 'svg/monster_roaming.svg');
                 $scope.animateMonster();
 
-                // Respawn powerup
-                var respawn = setTimeout(function () {
-                    $scope.spawnPowerup(powerup);
-                }, (powerup.attr("data-respawn") - powerup.attr("data-duration") * 1000));
+                $scope.invulnerable = false;
 
             }, powerup.data("duration") * 1000);
         }
@@ -174,6 +176,11 @@
 
             // Remove powerup from scene
             powerup.remove();
+
+            // Respawn powerup
+            var respawn = setTimeout(function () {
+                $scope.spawnPowerup(powerup);
+            }, (powerup.attr("data-respawn") * 1000));
         }
 
         $scope.silenceHit = function(powerup) {
@@ -202,6 +209,11 @@
 
             // Remove powerup from scene
             powerup.remove();
+
+            // Respawn powerup
+            var respawn = setTimeout(function () {
+                $scope.spawnPowerup(powerup);
+            }, (powerup.attr("data-respawn") * 1000));
         }
 
 
@@ -233,7 +245,8 @@
             if(!$scope.gameover)
                 $rootScope.session.score++;
 
-            $scope.growMonster();
+            if(!$scope.invulnerable)
+                $scope.growMonster();
 
             $scope.checkWin();
         });
