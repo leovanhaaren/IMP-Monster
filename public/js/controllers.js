@@ -4,65 +4,10 @@
 // ########          Init controller           ########
 // ####################################################
 
-    monsterApp.controller('initCtrl', ['$scope', '$rootScope', '$state', '$timeout', '$http', function($scope, $rootScope, $state, $timeout, $http) {
+    monsterApp.controller('initCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
         $rootScope.log('game', 'Init');
 
         $rootScope.message = "Zet webcam aan";
-
-        // Init socket events
-        // Listen for game sessions from server, so we can start the game when needed
-        $rootScope.socket.on('session:start', function (session) {
-            if(!$rootScope.engine.socketEnabled) return;
-
-            // Cancel timers
-            $timeout.cancel($rootScope.game.durationTimer);
-            $timeout.cancel($rootScope.game.countdownTimer);
-            $timeout.cancel($rootScope.game.idleTimer);
-
-            // Remove event handler
-            $(window).off('tick');
-
-            // Prepare session
-            $rootScope.session.id             = session.id;
-            $rootScope.session.durationCount  = 0;
-            $rootScope.session.countdownCount = 0;
-            $rootScope.session.idleCount      = 0;
-            $rootScope.session.player         = session.player;
-            $rootScope.session.state          = session.state;
-            $rootScope.session.score          = 0;
-
-            // Get game data from server
-            $http({method: 'GET', url: 'http://teammonster.nl/games/' + session.gameID}).
-                success(function(game) {
-                    $rootScope.game.name       = game.prototype;
-                    $rootScope.game.countdown  = game.countdown;
-                    $rootScope.game.cooldown   = game.cooldown;
-                    $rootScope.game.reset      = game.reset;
-                    $rootScope.game.remote     = game.remote;
-                    $rootScope.game.conditions = game.conditions;
-
-                    $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
-
-                    $state.go('countdown');
-                }).
-                error(function() {
-                    $rootScope.log('game', 'Error getting game data for session ' + session.id);
-
-                    $state.go('idle');
-                });
-        });
-
-        // Listen for game updates from server, in case game needs to be stopped
-        $rootScope.socket.on('session:cancel', function (session) {
-            if(!$rootScope.engine.socketEnabled) return;
-
-            // Cancel event when countdown is not finished yet
-            if($rootScope.session.countdownCount > 0) return;
-
-            $rootScope.log('socket.io', 'Stopped game session ' + session.id);
-
-            $state.go('finished');
-        });
     }]);
 
 
@@ -76,6 +21,13 @@
         $rootScope.message = "Selecteer een spel<br/>op de tablet";
 
         // Reset dat.GUI
+        $rootScope.game.name              = "";
+        $rootScope.game.countdown         = 0;
+        $rootScope.game.cooldown          = 0;
+        $rootScope.game.reset             = 0;
+        $rootScope.game.remote            = 0;
+        $rootScope.game.conditions        = "";
+
         $rootScope.session.id             = "";
         $rootScope.session.durationCount  = 0;
         $rootScope.session.countdownCount = 0;
@@ -92,34 +44,47 @@
 // ####################################################
 
     monsterApp.controller('countdownCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
-        // Skip countdown if not needed
-        if($rootScope.game.countdown == 0) {
-            $state.go('start');
-            return;
-        }
-
         $rootScope.log('game', 'Counting down');
+
+        // Make countdown big
+        $('h1').addClass('enlarge');
 
         // Count down and go to play state
         $rootScope.session.countdownCount = $rootScope.game.countdown;
         $rootScope.message = $rootScope.session.countdownCount.toString();
 
-        $rootScope.session.countdownCount--;
+        // Play sound on each countdown iteration
+        var instance = createjs.Sound.play("countdown");
+        instance.volume = 1;
+
+        $rootScope.log('countdown', $rootScope.session.countdownCount);
+
         $scope.timer = function() {
             $rootScope.game.countdownTimer = $timeout(function() {
-                $rootScope.message = $rootScope.session.countdownCount.toString();
-
-                if($rootScope.session.countdownCount < 1) {
+                if($rootScope.session.countdownCount <= 1) {
                     $rootScope.log('game', 'Moving to ' + $rootScope.game.name);
 
                     $rootScope.message = false;
+                    $('h1').removeClass('enlarge');
+
+                    // Play start sound
+                    var instance = createjs.Sound.play("start");
+                    instance.volume = 1;
+
+                    $rootScope.log('countdown', $rootScope.session.countdownCount);
 
                     $timeout.cancel($rootScope.game.countdownTimer);
                     $state.go('start');
                 } else {
-                    $rootScope.log('countdown', $rootScope.session.countdownCount);
+                    // Play sound on each countdown iteration
+                    var instance = createjs.Sound.play("countdown");
+                    instance.volume = 1;
 
                     $rootScope.session.countdownCount--;
+                    $rootScope.message = $rootScope.session.countdownCount.toString();
+
+                    $rootScope.log('countdown', $rootScope.session.countdownCount);
+
                     $scope.timer();
                 }
             }, 1000);
@@ -144,17 +109,27 @@
                 // Broadcast a tick for the minigames to raise score
                 $(window).trigger('tick');
 
+                // Cancel game if player is idle for too long
                 if($rootScope.session.idleCount >= $rootScope.game.reset) {
                     $rootScope.log('game', 'Player idle for too long, resetting the game');
 
-                    $timeout.cancel($rootScope.game.idleTimer);
-
                     $state.go('idle');
-                } else
+                }
+                else if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
+                    $rootScope.log('game', 'Game time reached');
+
+                    // Set message for end screen
+                    $rootScope.message = "De tijd is om<br/>Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+
+                    $state.go('finished');
+                } else {
                     $scope.timer();
+                }
             }, 1000);
         };
         $scope.timer();
+
+        $('#debug').show();
 
         // Move to game
         $state.go($rootScope.game.name);
@@ -175,6 +150,7 @@
 
         // Remove event handler
         $(window).off('tick');
+        $('#debug').hide();
 
         // Update message if empty
         if($rootScope.message == "")

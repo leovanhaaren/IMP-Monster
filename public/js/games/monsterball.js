@@ -6,24 +6,24 @@
 
 monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
     $rootScope.log('game', 'Started ' + $rootScope.game.name);
-    $rootScope.log('game', 'Time: ' + $rootScope.game.conditions.time);
-    $rootScope.log('game', 'Score: ' + $rootScope.game.conditions.score);
+    $rootScope.log('game', 'Time: '   + $rootScope.game.conditions.time);
+    $rootScope.log('game', 'Score: '  + $rootScope.game.conditions.score);
 
 
     // ########     Hits
     // ########     ----
 
     $scope.hotspotHit = function(powerup) {
-        // Raise score
-        $rootScope.session.score += powerup.data("score");
+        $rootScope.session.idleCount = 0;
 
-        // Remove powerup from scene
+        if(!isNaN(powerup.attr("data-score")))
+            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+
         powerup.remove();
 
-        // Respawn hotspot after x seconds
         var respawn = setTimeout(function () {
             $('#hotspots').prepend(powerup.get(0));
-        }, powerup.data("respawn") * 1000);
+        }, powerup.attr("data-respawn") * 1000);
 
     }
 
@@ -32,20 +32,13 @@ monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', func
     // ########     ----------
 
     $scope.checkWin = function() {
-        // Check if we have a winner
         if($rootScope.session.score >= $rootScope.game.conditions.score) {
             // Set message for end screen
             $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
 
-            $state.go('finished');
-        }
-    }
-
-    $scope.checkDuration = function() {
-        // Check if we have a winner
-        if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
-            // Set message for end screen
-            $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+            // Play win sound
+            var instance = createjs.Sound.play("win");
+            instance.volume = 1;
 
             $state.go('finished');
         }
@@ -55,17 +48,16 @@ monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', func
     // ########     Game events
     // ########     -----------
 
-    $(window).on('hit', function(ev, data){
-        // Reset idle timer
-        $rootScope.session.idleCount = 0;
+    $(window).on('tick', function(ev){
 
-        var hotspot = $(data.spot.el);
+    });
+
+    $(window).on('hit', function(ev, hotspot){
+        hotspot = $(hotspot);
 
         $scope.hotspotHit(hotspot);
 
         $scope.checkWin();
-
-        $scope.checkDuration();
     });
 
 }]);
