@@ -119,7 +119,7 @@
                     $rootScope.log('game', 'Game time reached');
 
                     // Set message for end screen
-                    $rootScope.message = "Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
+                    $rootScope.message = "De tijd is om<br/>Het spel is afgelopen<br/>Je score is " + $rootScope.session.score;
 
                     $state.go('finished');
                 } else {

@@ -70,6 +70,18 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         $rootScope.$state       = $state;
         $rootScope.$stateParams = $stateParams;
 
+        $rootScope.$on('$stateChangeSuccess', function(event, toState){
+            // Push state to database so we can broadcast it
+            $http({
+                method: 'PUT',
+                url: 'http://teammonster.nl/prototype/c765b101241b7b01',
+                data:
+                {
+                    "state": toState.name
+                }
+            });
+        });
+
 
         // ####################################################
         // ########          Engine settings           ########
