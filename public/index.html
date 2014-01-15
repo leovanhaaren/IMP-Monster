@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="css/games/monsterball.css"/>
     <link rel="stylesheet" href="css/games/skaterace.css"/>
     <link rel="stylesheet" href="css/games/skateordie.css"/>
+    <script>
+        var express = require('express'),
+                app = express(),
+                server = require('http').createServer(app),
+                io = require('socket.io').listen(server);
+
+        server.listen(1337);
+
+    </script>
 </head>
 <body>
     <!-- The actual video input and the game -->
@@ -27,12 +36,13 @@
     <div id="overlay">
         <h1 ng-bind-html="message"></h1>
     </div>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="libs/jquery.min.js"></script>
     <!--<script src="libs/jquery.animate-enhanced.min.js"></script>-->
     <script src='libs/angular.min.js'></script>
     <script src='libs/angular-sanitize.min.js'></script>
     <script src='libs/angular-ui-router.min.js'></script>
     <script src="/socket.io/socket.io.js"></script>
+    <!--<script src='libs/socket.io.js'></script>-->
     <script src='libs/soundjs.min.js'></script>
     <script src='libs/dat.gui.min.js'></script>
     <script src='libs/fpsmeter.min.js'></script>

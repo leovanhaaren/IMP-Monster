@@ -90,8 +90,9 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Engine settings
         $rootScope.engine = {
             debug:                true,
-            debugDetection:       false,
+            debugDetection:       true,
             socketEnabled:        true,
+            resize:               true,
 
             detection: {
                 enabled:          true,
@@ -101,8 +102,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
                 whiteThreshold:   200,
                 confidence:       10,
-                debug:            true
-            },
+                debug:            function() { $('#debug').toggle();
+                },
 
             areaOfInterest: {
                 show:             false,
@@ -137,12 +138,12 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
          */
 
         // FPS meter settings
-        /*$rootScope.meter = new FPSMeter({
+        $rootScope.meter = new FPSMeter({
             theme:   'transparent',
             heat:    1,
             graph:   1,
             history: 50
-        });*/
+        });
 
 
         // ####################################################
@@ -170,19 +171,30 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
         // Session settings
         $rootScope.session = {
-            id:             0,
-
             durationCount:  0,
             countdownCount: 0,
             idleCount:      0,
 
+            id:             "",
+
             game:           "",
-            player:         "",
+            winner:         "",
 
             state:          "",
 
             score:          0
         };
+
+
+        // ####################################################
+        // ########           Sound settings           ########
+        // ####################################################
+
+        // Preload sounds
+        createjs.Sound.registerSound("sounds/countdown.mp3", "countdown");
+        createjs.Sound.registerSound("sounds/start.mp3",     "start");
+        createjs.Sound.registerSound("sounds/win.mp3",       "win");
+        createjs.Sound.registerSound("sounds/gameover.mp3",  "gameover");
 
 
         // ####################################################
@@ -239,6 +251,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             f1.add($rootScope.engine, 'debug');
             f1.add($rootScope.engine, 'debugDetection');
             f1.add($rootScope.engine, 'socketEnabled');
+            f1.add($rootScope.engine, 'resize');
+
             f1.add($rootScope.engine, 'frameCount').listen();
             f1.add($rootScope.engine, 'skippedFrames').listen();
 
@@ -282,12 +296,16 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             f5.add($rootScope.session, 'countdownCount').listen();
             f5.add($rootScope.session, 'idleCount').listen();
 
+            f5.add($rootScope.session, 'id').listen();
+
             f5.add($rootScope.session, 'game').listen();
-            f5.add($rootScope.session, 'player').listen();
+            f5.add($rootScope.session, 'winner').listen();
 
             f5.add($rootScope.session, 'state').listen();
 
             f5.add($rootScope.session, 'score').listen();
+
+            gui.closed = true;
         }
 
 
@@ -325,16 +343,22 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             var w     = $(this).width();
             var h     = $(this).height();
 
-            if (content.width() > w) {
-                content.width(w);
-                content.height(w / ratio);
+            if($rootScope.engine.resize) {
+                if (content.width() > w) {
+                    content.width(w);
+                    content.height(w / ratio);
+                } else {
+                    content.height(h);
+                    content.width(h * ratio);
+                }
+                content.css('left', (w - content.width()) / 2);
             } else {
-                content.height(h);
-                content.width(h * ratio);
+                content.width('100%');
+                content.height('100%');
+                content.css('left', 0);
             }
             canvases.width(content.width());
             canvases.height(content.height());
-            content.css('left', (w - content.width()) / 2);
 
             // Update font size
             $('h1').css({'font-size': $(this).height() / 12 +"px"});
@@ -389,12 +413,14 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             // FPSmeter
             // Give it a tick to update fps
-            //$rootScope.meter.tick();
+            $rootScope.meter.tick();
         }
 
         // Draw function which gets called each iteration
         // Only draws the video input on the canvas when detection is enabled
         function draw() {
+            if(!$state.includes("idle")) return;
+
             // Show AOI only if enabled
             if($rootScope.engine.areaOfInterest.show) {
                 // Draw video input
@@ -425,10 +451,13 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
         // Gets all hotspots from the scene, so we can later check if players hits one of these
         function getHotspots() {
+            if($state.includes("idle")) return;
+
+            delete $rootScope.hotspots;
             $rootScope.hotspots = [];
 
+            var ratio = $("#canvas").width() / $('video').width();
             $('#hotspots').children().each(function (i, el) {
-                var ratio = $("#canvas").width() / $('video').width();
                 $rootScope.hotspots[i] = {
                     x:      this.offsetLeft   / ratio,
                     y:      this.offsetTop    / ratio,
@@ -447,6 +476,8 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Checks a portion of the canvas, based on the objects dimensions
         // Will trigger a hit event when player hits a object based on threshold
         function checkHotspots() {
+            if($state.includes("idle")) return;
+
             var hotspots = $rootScope.hotspots;
 
             if(!$rootScope.engine.detection.enabled) return;
@@ -481,22 +512,22 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                     if(white >= $rootScope.engine.detection.whiteThreshold) confidence++;
                     ++i;
 
-                    // Debug if needed
-                    if($rootScope.engine.debugDetection)
-                        if($rootScope.engine.frameCount % 3 == 1 && confidence > 0)
-                            $rootScope.log('detection', 'Confidence: ' + confidence);
-
                     // over a small limit, consider that a movement is detected
                     if (confidence > $rootScope.engine.detection.confidence) {
                         $(hotspots[h].el).trigger('hit', hotspots[h].el);
 
-                        if($rootScope.engine.detection.debug) {
-                            debugContext.lineWidth   = 1;
-                            debugContext.strokeStyle = "#FFFFFF";
+                        // Debug if needed
+                        if($rootScope.engine.debugDetection)
+                            $rootScope.log('detection', 'Confidence: ' + confidence);
+                        else
+                            return;
 
-                            debugContext.clearRect(0, 0, debug.width, debug.height);
-                            debugContext.strokeRect(Math.round(hotspots[h].x), Math.round(hotspots[h].y), Math.round(hotspots[h].width), Math.round(hotspots[h].height));
-                        }
+                        debugContext.lineWidth   = 5;
+                        debugContext.strokeStyle = "#FFFFFF";
+
+                        debugContext.clearRect(0, 0, debug.width, debug.height);
+                        debugContext.strokeRect(Math.round(hotspots[h].x), Math.round(hotspots[h].y), Math.round(hotspots[h].width), Math.round(hotspots[h].height));
+
                         return;
                     }
                 }
@@ -513,7 +544,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         $rootScope.socket.on('session:start', function (session) {
             if(!$rootScope.engine.socketEnabled) return;
 
-            // Only allow start of new games if the game isnt already running one
+            // Only allow start of new games if the game isn't already running one
             if(!$state.includes("idle")) return;
 
             // Prepare session
@@ -531,7 +562,9 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                     $rootScope.game.remote     = game.remote;
                     $rootScope.game.conditions = game.conditions;
 
-                    $rootScope.log('socket.io', 'Received game session ' + session.id + ' ' + $rootScope.game.name);
+                    $rootScope.session.id      = session.id;
+
+                    $rootScope.log('socket.io', 'Received game session ' + $rootScope.session.id + ' ' + $rootScope.game.name);
 
                     if(game.countdown > 0)
                         $state.go('countdown');
@@ -550,22 +583,11 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             if(!$rootScope.engine.socketEnabled) return;
 
             // Cancel event when not running a game
-            if($state.includes("countdown") || $state.includes("finished")) return;
+            if($state.includes("idle") || $state.includes("countdown") || $state.includes("finished")) return;
 
             $rootScope.log('socket.io', 'Stopped game session ' + session.id);
 
             $state.go('finished');
         });
-
-
-        // ####################################################
-        // ########           Sound settings           ########
-        // ####################################################
-
-        // Preload sounds
-        createjs.Sound.registerSound("sounds/countdown.mp3", "countdown");
-        createjs.Sound.registerSound("sounds/start.mp3",     "start");
-        createjs.Sound.registerSound("sounds/win.mp3",       "win");
-        createjs.Sound.registerSound("sounds/gameover.mp3",  "gameover");
 
     }]);

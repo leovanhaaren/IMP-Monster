@@ -76,7 +76,10 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     $scope.checkWin = function(hotspot) {
         if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
             // Set message for end screen
-            $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.attr("data-player") + " is de winnaar";
+            $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.attr("data-color") + " is de winnaar";
+
+            // Set winner
+            $rootScope.session.winner = hotspot.attr("data-color");
 
             // Play win sound
             var instance = createjs.Sound.play("win");

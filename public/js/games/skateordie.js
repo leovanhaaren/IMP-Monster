@@ -4,7 +4,7 @@
 // ########        Skaterace controller        ########
 // ####################################################
 
-    monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', '$timeout', function($scope, $rootScope, $state, $timeout) {
+    monsterApp.controller('skateordieCtrl', ['$scope', '$rootScope', '$state', '$timeout', '$http', function($scope, $rootScope, $state, $timeout, $http) {
         $rootScope.log('game', 'Started ' + $rootScope.game.name);
         $rootScope.log('game', 'Time: '   + $rootScope.game.conditions.time);
         $rootScope.log('game', 'Score: '  + $rootScope.game.conditions.score);
@@ -152,14 +152,8 @@
         $scope.shockHit = function(powerup) {
             $rootScope.log('game', 'Hit shock powerup');
 
-            // Check for NaN bug
-            if(isNaN(powerup.attr("data-score"))){
-                $rootScope.log('game', '*** Score was NaN ***');
-                return;
-            }
-
             // Raise score
-            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+            $scope.updateScore(powerup.attr("data-score"));
 
             // Play shock sound
             var instance = createjs.Sound.play("sounds/shock.mp3");
@@ -186,14 +180,8 @@
         $scope.silenceHit = function(powerup) {
             $rootScope.log('game', 'Hit silence powerup');
 
-            // Check for NaN bug
-            if(isNaN(powerup.attr("data-score"))){
-                $rootScope.log('game', '*** Score was NaN ***');
-                return;
-            }
-
             // Raise score
-            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+            $scope.updateScore(powerup.attr("data-score"));
 
             // Play silence sound
             var instance = createjs.Sound.play("sounds/silence.mp3");
@@ -214,6 +202,21 @@
             var respawn = setTimeout(function () {
                 $scope.spawnPowerup(powerup);
             }, (powerup.attr("data-respawn") * 1000));
+        }
+
+        $scope.updateScore = function(score) {
+            if(isNaN(score)) return;
+
+            $rootScope.session.score += parseInt(score);
+
+            $http({
+                method: 'PUT',
+                url: 'http://teammonster.nl/gamesessions/' + $rootScope.session.id,
+                data:
+                {
+                    "score": $rootScope.session.score
+                }
+            });
         }
 
 
@@ -243,9 +246,9 @@
 
             // Return if game is over
             if(!$scope.gameover)
-                $rootScope.session.score++;
+                $scope.updateScore(1);
 
-            if(!$scope.invulnerable)
+            if(!$scope.invulnerable && !$scope.gameover)
                 $scope.growMonster();
 
             $scope.checkWin();

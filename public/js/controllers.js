@@ -33,9 +33,13 @@
         $rootScope.session.countdownCount = 0;
         $rootScope.session.idleCount      = 0;
         $rootScope.session.game           = "";
-        $rootScope.session.player         = "";
+        $rootScope.session.winner         = "";
         $rootScope.session.state          = "";
         $rootScope.session.score          = 0;
+
+        // Clear debug screen
+        var debug = $("#debug")[0];
+        debug.getContext('2d').clearRect(0, 0, debug.width, debug.height);
     }]);
 
 
@@ -129,8 +133,6 @@
         };
         $scope.timer();
 
-        $('#debug').show();
-
         // Move to game
         $state.go($rootScope.game.name);
     }]);
@@ -150,7 +152,10 @@
 
         // Remove event handler
         $(window).off('tick');
-        $('#debug').hide();
+
+        // Clear debug screen
+        var debug = $("#debug")[0];
+        debug.getContext('2d').clearRect(0, 0, debug.width, debug.height);
 
         // Update message if empty
         if($rootScope.message == "")
@@ -162,6 +167,7 @@
             url: 'http://teammonster.nl/gamesessions/' + $rootScope.session.id,
             data:
             {
+                "winner": $rootScope.session.winner,
                 "score": $rootScope.session.score,
                 "state": "ended"
             }

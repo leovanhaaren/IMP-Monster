@@ -4,7 +4,7 @@
 // ########     Prototype 01/02 controller     ########
 // ####################################################
 
-monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', function($scope, $rootScope, $state) {
+monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', '$http', function($scope, $rootScope, $state, $http) {
     $rootScope.log('game', 'Started ' + $rootScope.game.name);
     $rootScope.log('game', 'Time: '   + $rootScope.game.conditions.time);
     $rootScope.log('game', 'Score: '  + $rootScope.game.conditions.score);
@@ -16,15 +16,28 @@ monsterApp.controller('monsterballCtrl', ['$scope', '$rootScope', '$state', func
     $scope.hotspotHit = function(powerup) {
         $rootScope.session.idleCount = 0;
 
-        if(!isNaN(powerup.attr("data-score")))
-            $rootScope.session.score += parseInt(powerup.attr("data-score"));
+        $scope.updateScore(powerup.attr("data-score"));
 
         powerup.remove();
 
         var respawn = setTimeout(function () {
             $('#hotspots').prepend(powerup.get(0));
         }, powerup.attr("data-respawn") * 1000);
+    }
 
+    $scope.updateScore = function(score) {
+        if(isNaN(score)) return;
+
+        $rootScope.session.score += parseInt(score);
+
+        $http({
+            method: 'PUT',
+            url: 'http://teammonster.nl/gamesessions/' + $rootScope.session.id,
+            data:
+            {
+                "score": $rootScope.session.score
+            }
+        });
     }
 
 
