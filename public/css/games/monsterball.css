@@ -30,7 +30,7 @@
     -webkit-border-radius: 100px;
     border-radius: 100px;
 
-    -webkit-animation: movingcircle 15s infinite;
+    -webkit-animation: movingcircle 20s infinite;
 }
 
 .ball2 {
@@ -41,7 +41,7 @@
 
     background: green;
 
-    -webkit-animation: movingcircle 10s infinite;
+    -webkit-animation: movingcircle 15s infinite;
 }
 
 .ball3 {
@@ -52,7 +52,7 @@
 
     background: red;
 
-    -webkit-animation: movingcircle 5s infinite;
+    -webkit-animation: movingcircle 10s infinite;
 }
 
 .game-ball {

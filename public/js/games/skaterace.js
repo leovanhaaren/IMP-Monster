@@ -13,6 +13,8 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     $scope.player1lock = 0;
     $scope.player2lock = 0;
 
+    $scope.gameover     = false;
+
 
     // ########     Positioning
     // ########     -----------
@@ -73,10 +75,12 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
     // ########     Conditions
     // ########     ----------
 
-    $scope.checkWin = function(hotspot) {
+    $scope.checkRace = function(hotspot) {
         if($scope.areaPercentage <= $scope.player1Limit || $scope.areaPercentage >= $scope.player2Limit){
             // Set message for end screen
             $rootScope.message = "Het spel is afgelopen<br/>" + hotspot.attr("data-color") + " is de winnaar";
+
+            $scope.gameover = true;
 
             // Set winner
             $rootScope.session.winner = hotspot.attr("data-color");
@@ -110,13 +114,15 @@ monsterApp.controller('skateraceCtrl', ['$scope', '$rootScope', '$state', functi
         // Reset idle timer
         $rootScope.session.idleCount = 0;
 
-        if(hotspot.attr("data-player") === "player1")
-            $scope.player1Score(hotspot);
+        if(!$scope.gameover) {
+            if(hotspot.attr("data-player") === "player1")
+                $scope.player1Score(hotspot);
 
-        if(hotspot.attr("data-player") === "player2")
-            $scope.player2Score(hotspot);
+            if(hotspot.attr("data-player") === "player2")
+                $scope.player2Score(hotspot);
 
-        $scope.checkWin(hotspot);
+            $scope.checkRace(hotspot);
+        }
     });
 
 }]);

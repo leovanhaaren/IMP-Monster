@@ -34,7 +34,8 @@
 }
 
 #hotspots > .rotate {
-    -webkit-animation: spin 4s ease-out;
+    /*-webkit-animation: spin 4s ease-out;*/
+    opacity: 0.5;
 }
 
 #hotspots > .flip > img {
@@ -52,8 +53,9 @@
 // ##################################################*/
 
 #bg.gameover {
-    -webkit-animation: gameover 2.5s linear;
-    -webkit-animation-fill-mode: forwards;
+    /*-webkit-animation: gameover 2.5s linear;
+    -webkit-animation-fill-mode: forwards;*/
+    background: red;
 }
 
 

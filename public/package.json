@@ -6,14 +6,18 @@
   "keywords": [ "demo", "prototype" ],
   "window": {
     "title": "Gameramp",
-    //"icon": "link.png",
-    "toolbar": true,
+    "icon": "icon.png",
+    "toolbar": false,
     "frame": true,
     "width": 800,
     "height": 600,
     "position": "center",
     "min_width": 800,
-    "min_height": 600
+    "min_height": 600,
+    "resize": true,
+    "always-on-top": false,
+    "fullscreen": false,
+    "show": true
   },
   "webkit": {
     "plugin": true

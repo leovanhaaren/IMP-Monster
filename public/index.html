@@ -8,12 +8,13 @@
     <link rel="stylesheet" href="css/games/skaterace.css"/>
     <link rel="stylesheet" href="css/games/skateordie.css"/>
     <script>
+
         var express = require('express'),
                 app = express(),
                 server = require('http').createServer(app),
                 io = require('socket.io').listen(server);
 
-        server.listen(1337);
+        server.listen(3000);
 
     </script>
 </head>
@@ -30,19 +31,22 @@
         <!-- The scene where angular will inject the game's html code -->
         <div id="scene" ui-view></div>
 
-        <img src="svg/logitech.svg" alt="logitech" id="promo" ng-show="$state.includes('idle')" />
+        <img src="svg/team.svg"     alt="team"     id="teampromo" ng-show="$state.includes('idle')" />
+        <img src="svg/logitech.svg" alt="logitech" id="logitechpromo" ng-show="$state.includes('idle')" />
     </div>
     <!-- Shows game-related messages, such as select game and the countdown -->
     <div id="overlay">
         <h1 ng-bind-html="message"></h1>
+
+        <!-- Select video type -->
+        <select id="videoSource"></select>
     </div>
     <script src="libs/jquery.min.js"></script>
     <!--<script src="libs/jquery.animate-enhanced.min.js"></script>-->
     <script src='libs/angular.min.js'></script>
     <script src='libs/angular-sanitize.min.js'></script>
     <script src='libs/angular-ui-router.min.js'></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <!--<script src='libs/socket.io.js'></script>-->
+    <script src='libs/socket.io.min.js'></script>
     <script src='libs/soundjs.min.js'></script>
     <script src='libs/dat.gui.min.js'></script>
     <script src='libs/fpsmeter.min.js'></script>

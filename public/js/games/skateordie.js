@@ -87,8 +87,8 @@
             var width  = $scope.monster.width();
             var height = $scope.monster.height();
 
-            $scope.monster.css({'width':  (width  + (width  / 150)) +"px"});
-            $scope.monster.css({'height': (height + (height / 150)) +"px"});
+            $scope.monster.css({'width':  (width  + (width  / 75)) +"px"});
+            $scope.monster.css({'height': (height + (height / 75)) +"px"});
         }
 
 
@@ -152,11 +152,13 @@
         $scope.shockHit = function(powerup) {
             $rootScope.log('game', 'Hit shock powerup');
 
+            $rootScope.session.idleCount = 0;
+
             // Raise score
             $scope.updateScore(powerup.attr("data-score"));
 
             // Play shock sound
-            var instance = createjs.Sound.play("sounds/shock.mp3");
+            var instance = createjs.Sound.play("sounds/shock.ogg");
             instance.volume = 1;
 
             $scope.stopMonster();
@@ -180,11 +182,13 @@
         $scope.silenceHit = function(powerup) {
             $rootScope.log('game', 'Hit silence powerup');
 
+            $rootScope.session.idleCount = 0;
+
             // Raise score
             $scope.updateScore(powerup.attr("data-score"));
 
             // Play silence sound
-            var instance = createjs.Sound.play("sounds/silence.mp3");
+            var instance = createjs.Sound.play("sounds/silence.ogg");
             instance.volume = 1;
 
             $scope.stopMonster();
@@ -242,11 +246,11 @@
         // ########     -----------
 
         $(window).on('tick', function(ev){
-            $rootScope.session.idleCount = 0;
-
             // Return if game is over
             if(!$scope.gameover)
                 $scope.updateScore(1);
+            else
+                $rootScope.session.idleCount = 0;
 
             if(!$scope.invulnerable && !$scope.gameover)
                 $scope.growMonster();

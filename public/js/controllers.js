@@ -26,7 +26,7 @@
         $rootScope.game.cooldown          = 0;
         $rootScope.game.reset             = 0;
         $rootScope.game.remote            = 0;
-        $rootScope.game.conditions        = "";
+        $rootScope.game.conditions        = {};
 
         $rootScope.session.id             = "";
         $rootScope.session.durationCount  = 0;
@@ -117,7 +117,7 @@
                 if($rootScope.session.idleCount >= $rootScope.game.reset) {
                     $rootScope.log('game', 'Player idle for too long, resetting the game');
 
-                    $state.go('idle');
+                    $state.go('finished');
                 }
                 else if($rootScope.session.durationCount >= $rootScope.game.conditions.time) {
                     $rootScope.log('game', 'Game time reached');
@@ -150,8 +150,9 @@
         $timeout.cancel($rootScope.game.countdownTimer);
         $timeout.cancel($rootScope.game.idleTimer);
 
-        // Remove event handler
+        // Remove event handlers
         $(window).off('tick');
+        $(window).off('hit');
 
         // Clear debug screen
         var debug = $("#debug")[0];

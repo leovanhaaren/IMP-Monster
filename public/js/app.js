@@ -87,56 +87,6 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // ########          Engine settings           ########
         // ####################################################
 
-        // Engine settings
-        $rootScope.engine = {
-            debug:                true,
-            debugDetection:       true,
-            socketEnabled:        true,
-            resize:               true,
-
-            detection: {
-                enabled:          true,
-                frameSkip:        0,
-                toggleVisibility: function() { $('#canvas').toggle();                                     },
-                mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
-                mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   200,
-                confidence:       10,
-                debug:            function() { $('#debug').toggle();
-                },
-
-            areaOfInterest: {
-                show:             false,
-                x:                160,
-                y:                70,
-                width:            360,
-                height:           320,
-                thickness:        2,
-                color:            '#16CFDC'
-            },
-
-            frameCount:           0,
-            skippedFrames:        0
-        };
-
-        /*
-         show:             false,
-         x:                160,
-         y:                70,
-         width:            360,
-         height:           320,
-         thickness:        2,
-         color:            '#16CFDC'
-
-         show:             false,
-         x:                90,
-         y:                40,
-         width:            495,
-         height:           405,
-         thickness:        2,
-         color:            '#16CFDC'
-         */
-
         // FPS meter settings
         $rootScope.meter = new FPSMeter({
             theme:   'transparent',
@@ -144,6 +94,40 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             graph:   1,
             history: 50
         });
+
+        // Engine settings
+        $rootScope.engine = {
+            debug:                true,
+            debugDetection:       true,
+            socketEnabled:        true,
+            resize:               false,
+            fps:                  function() { $('#fpsmeter').toggle();                                   },
+            source:               function() { $('#videoSource').toggle();                                },
+
+            detection: {
+                enabled:          true,
+                frameSkip:        0,
+                toggleVisibility: function() { $('#canvas').toggle();                                     },
+                mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
+                mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
+                whiteThreshold:   100,
+                confidence:       5,
+                debug:            function() { $('#debug').toggle(); }
+                },
+
+            areaOfInterest: {
+                show:             false,
+                x:                0,
+                y:                0,
+                width:            640,
+                height:           480,
+                thickness:        2,
+                color:            '#16CFDC'
+            },
+
+            frameCount:           0,
+            skippedFrames:        0
+        };
 
 
         // ####################################################
@@ -191,10 +175,10 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // ####################################################
 
         // Preload sounds
-        createjs.Sound.registerSound("sounds/countdown.mp3", "countdown");
-        createjs.Sound.registerSound("sounds/start.mp3",     "start");
-        createjs.Sound.registerSound("sounds/win.mp3",       "win");
-        createjs.Sound.registerSound("sounds/gameover.mp3",  "gameover");
+        createjs.Sound.registerSound("sounds/countdown.ogg", "countdown");
+        createjs.Sound.registerSound("sounds/start.ogg",     "start");
+        createjs.Sound.registerSound("sounds/win.ogg",       "win");
+        createjs.Sound.registerSound("sounds/gameover.ogg",  "gameover");
 
 
         // ####################################################
@@ -248,25 +232,27 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             // Video input settings
             f1 = gui.addFolder('Engine');
 
-            f1.add($rootScope.engine, 'debug');
+            /*f1.add($rootScope.engine, 'debug');
             f1.add($rootScope.engine, 'debugDetection');
             f1.add($rootScope.engine, 'socketEnabled');
-            f1.add($rootScope.engine, 'resize');
+            f1.add($rootScope.engine, 'resize');*/
+            f1.add($rootScope.engine, 'fps');
+            f1.add($rootScope.engine, 'source');
 
-            f1.add($rootScope.engine, 'frameCount').listen();
-            f1.add($rootScope.engine, 'skippedFrames').listen();
+            /*f1.add($rootScope.engine, 'frameCount').listen();
+            f1.add($rootScope.engine, 'skippedFrames').listen();*/
 
 
             f2 = gui.addFolder('Detection');
 
-            f2.add($rootScope.engine.detection, 'enabled');
-            f2.add($rootScope.engine.detection, 'frameSkip',      0, 60);
+            /*f2.add($rootScope.engine.detection, 'enabled');
+            f2.add($rootScope.engine.detection, 'frameSkip',      0, 60);*/
             f2.add($rootScope.engine.detection, 'toggleVisibility');
-            f2.add($rootScope.engine.detection, 'mirrorHorizontal');
-            f2.add($rootScope.engine.detection, 'mirrorVertical');
+            /*f2.add($rootScope.engine.detection, 'mirrorHorizontal');
+            f2.add($rootScope.engine.detection, 'mirrorVertical');*/
             f2.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
             f2.add($rootScope.engine.detection, 'confidence',     1, 100);
-            f2.add($rootScope.engine.detection, 'debug');
+            /*f2.add($rootScope.engine.detection, 'debug');*/
 
 
             f3 = gui.addFolder('Input');
@@ -279,7 +265,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
 
             // General game settings
-            f4 = gui.addFolder('Game');
+            /*f4 = gui.addFolder('Game');
 
             f4.add($rootScope.game, 'name').listen();
             f4.add($rootScope.game, 'countdown').listen();
@@ -303,34 +289,78 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
             f5.add($rootScope.session, 'state').listen();
 
-            f5.add($rootScope.session, 'score').listen();
+            f5.add($rootScope.session, 'score').listen();*/
 
             gui.closed = true;
         }
+        setupGUI();
 
 
         // ####################################################
         // ########            Webcam setup            ########
         // ####################################################
 
-        // Define webcam error
-        var webcamError = function (e) {
-            $rootScope.log('input', 'Webcam error: ' + e);
-        };
+        var videoElement = video;
+        var videoSelect = document.querySelector("select#videoSource");
+        var startButton = document.querySelector("button#start");
 
-        // Prepare video stream
-        if (navigator.webkitGetUserMedia) {
-            navigator.webkitGetUserMedia({video: true}, function (stream) {
-                video.src = window.webkitURL.createObjectURL(stream);
+        navigator.getUserMedia = navigator.getUserMedia ||
+            navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-                $rootScope.log('engine', 'Initialized webcam');
-
-                setupGUI();
-                startLoop();
-
-                $state.go('idle');
-            }, webcamError);
+        function gotSources(sourceInfos) {
+            for (var i = 0; i != sourceInfos.length; ++i) {
+                var sourceInfo = sourceInfos[i];
+                var option = document.createElement("option");
+                option.value = sourceInfo.id;
+                if (sourceInfo.kind === 'video') {
+                    option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+                    videoSelect.appendChild(option);
+                } else {
+                    console.log('Some other kind of source: ', sourceInfo);
+                }
+            }
         }
+
+        if (typeof MediaStreamTrack === 'undefined'){
+            alert('This browser does not support MediaStreamTrack.\n\nTry Chrome Canary.');
+        } else {
+            MediaStreamTrack.getSources(gotSources);
+        }
+
+
+        function successCallback(stream) {
+            window.stream = stream; // make stream available to console
+            videoElement.src = window.URL.createObjectURL(stream);
+            videoElement.play();
+
+            startLoop();
+
+            $state.go('idle');
+
+            $rootScope.log('engine', 'Initialized webcam');
+        }
+
+        function errorCallback(error){
+            console.log("navigator.getUserMedia error: ", error);
+        }
+
+        function start(){
+            if (!!window.stream) {
+                videoElement.src = null;
+                window.stream.stop();
+            }
+            var videoSource = videoSelect.value;
+            var constraints = {
+                video: {
+                    optional: [{sourceId: videoSource}]
+                }
+            };
+            navigator.getUserMedia(constraints, successCallback, errorCallback);
+        }
+
+        videoSelect.onchange = start;
+
+        start();
 
 
         // ####################################################
@@ -363,8 +393,9 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             // Update font size
             $('h1').css({'font-size': $(this).height() / 12 +"px"});
 
-            // Update promo
-            $('#promo').css({'width': $(this).height() / 2 +"px"});
+            // Update promos
+            $('#teampromo').css({'width': $(this).height() / 4 +"px"});
+            $('#logitechpromo').css({'width': $(this).height() / 2 +"px"});
         }
         $(window).resize(resize);
         $(window).ready(function () {
@@ -419,7 +450,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Draw function which gets called each iteration
         // Only draws the video input on the canvas when detection is enabled
         function draw() {
-            if(!$state.includes("idle")) return;
+            //if(!$state.includes("idle")) return;
 
             // Show AOI only if enabled
             if($rootScope.engine.areaOfInterest.show) {
@@ -451,7 +482,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
 
         // Gets all hotspots from the scene, so we can later check if players hits one of these
         function getHotspots() {
-            if($state.includes("idle")) return;
+            //if($state.includes("idle")) return;
 
             delete $rootScope.hotspots;
             $rootScope.hotspots = [];
@@ -476,7 +507,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
         // Checks a portion of the canvas, based on the objects dimensions
         // Will trigger a hit event when player hits a object based on threshold
         function checkHotspots() {
-            if($state.includes("idle")) return;
+            //if($state.includes("idle")) return;
 
             var hotspots = $rootScope.hotspots;
 
@@ -522,7 +553,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                         else
                             return;
 
-                        debugContext.lineWidth   = 5;
+                        debugContext.lineWidth   = 2;
                         debugContext.strokeStyle = "#FFFFFF";
 
                         debugContext.clearRect(0, 0, debug.width, debug.height);
