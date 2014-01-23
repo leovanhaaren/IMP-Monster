@@ -110,7 +110,7 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
                 toggleVisibility: function() { $('#canvas').toggle();                                     },
                 mirrorHorizontal: function() { context.translate(canvas.width, 0);  context.scale(-1, 1); },
                 mirrorVertical:   function() { context.translate(0, canvas.height); context.scale(1, -1); },
-                whiteThreshold:   100,
+                whiteThreshold:   51,
                 confidence:       5,
                 debug:            function() { $('#debug').toggle(); }
                 },
@@ -232,27 +232,27 @@ var monsterApp = angular.module('app', ['ui.router', 'ngSanitize']);
             // Video input settings
             f1 = gui.addFolder('Engine');
 
-            /*f1.add($rootScope.engine, 'debug');
+            f1.add($rootScope.engine, 'debug');
             f1.add($rootScope.engine, 'debugDetection');
             f1.add($rootScope.engine, 'socketEnabled');
-            f1.add($rootScope.engine, 'resize');*/
+            f1.add($rootScope.engine, 'resize');
             f1.add($rootScope.engine, 'fps');
             f1.add($rootScope.engine, 'source');
 
-            /*f1.add($rootScope.engine, 'frameCount').listen();
-            f1.add($rootScope.engine, 'skippedFrames').listen();*/
+            f1.add($rootScope.engine, 'frameCount').listen();
+            f1.add($rootScope.engine, 'skippedFrames').listen();
 
 
             f2 = gui.addFolder('Detection');
 
-            /*f2.add($rootScope.engine.detection, 'enabled');
-            f2.add($rootScope.engine.detection, 'frameSkip',      0, 60);*/
+            f2.add($rootScope.engine.detection, 'enabled');
+            f2.add($rootScope.engine.detection, 'frameSkip',      0, 60);
             f2.add($rootScope.engine.detection, 'toggleVisibility');
-            /*f2.add($rootScope.engine.detection, 'mirrorHorizontal');
-            f2.add($rootScope.engine.detection, 'mirrorVertical');*/
+            f2.add($rootScope.engine.detection, 'mirrorHorizontal');
+            f2.add($rootScope.engine.detection, 'mirrorVertical');
             f2.add($rootScope.engine.detection, 'whiteThreshold', 1, 255);
             f2.add($rootScope.engine.detection, 'confidence',     1, 100);
-            /*f2.add($rootScope.engine.detection, 'debug');*/
+            f2.add($rootScope.engine.detection, 'debug');
 
 
             f3 = gui.addFolder('Input');

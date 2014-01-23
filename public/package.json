@@ -8,7 +8,7 @@
     "title": "Gameramp",
     "icon": "icon.png",
     "toolbar": false,
-    "frame": true,
+    "frame": false,
     "width": 800,
     "height": 600,
     "position": "center",
